@@ -1,7 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Star, GraduationCap, Clock } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 export default function TopTutors() {
   const tutors = [
@@ -59,9 +60,9 @@ export default function TopTutors() {
               Browse our highest-rated tutors across various subjects.
             </p>
           </div>
-          <Button variant="outline" className="hidden md:flex" asChild>
-            <Link href="/tutors">View All Tutors</Link>
-          </Button>
+          <Link href="/tutors" className={cn(buttonVariants({ variant: "outline" }), "hidden md:flex")}>
+            View All Tutors
+          </Link>
         </div>
 
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
@@ -98,18 +99,18 @@ export default function TopTutors() {
                   </div>
                 </div>
 
-                <Button className="w-full bg-gray-900 hover:bg-blue-600 transition-colors" asChild>
-                  <Link href={`/tutors/${tutor.id}`}>Book Session</Link>
-                </Button>
+                <Link href={`/tutors/${tutor.id}`} className={cn(buttonVariants({ variant: "default" }), "w-full bg-gray-900 hover:bg-blue-600 transition-colors")}>
+                  Book Session
+                </Link>
               </div>
             </div>
           ))}
         </div>
         
         <div className="mt-8 flex justify-center md:hidden">
-          <Button variant="outline" className="w-full max-w-sm" asChild>
-            <Link href="/tutors">View All Tutors</Link>
-          </Button>
+          <Link href="/tutors" className={cn(buttonVariants({ variant: "outline" }), "w-full max-w-sm")}>
+            View All Tutors
+          </Link>
         </div>
       </div>
     </section>

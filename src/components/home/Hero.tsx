@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Search, Star, Users } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 export default function Hero() {
   return (
@@ -19,15 +20,13 @@ export default function Hero() {
           </p>
           
           <div className="flex flex-col items-center justify-center gap-4 sm:flex-row pt-4">
-            <Button size="lg" className="h-14 w-full bg-blue-600 px-8 text-lg hover:bg-blue-700 sm:w-auto shadow-xl shadow-blue-200" asChild>
-              <Link href="/tutors">
-                <Search className="mr-2 h-5 w-5" />
-                Find a Tutor
-              </Link>
-            </Button>
-            <Button size="lg" variant="outline" className="h-14 w-full px-8 text-lg sm:w-auto border-2" asChild>
-              <Link href="/register">Become a Tutor</Link>
-            </Button>
+            <Link href="/tutors" className={cn(buttonVariants({ size: "lg" }), "h-14 w-full bg-blue-600 px-8 text-lg hover:bg-blue-700 sm:w-auto shadow-xl shadow-blue-200")}>
+              <Search className="mr-2 h-5 w-5" />
+              Find a Tutor
+            </Link>
+            <Link href="/register" className={cn(buttonVariants({ size: "lg", variant: "outline" }), "h-14 w-full px-8 text-lg sm:w-auto border-2")}>
+              Become a Tutor
+            </Link>
           </div>
 
           <div className="pt-8 flex items-center justify-center gap-8 text-sm font-medium text-gray-500">

@@ -3,7 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Menu, X, BookOpen } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -42,12 +43,12 @@ export default function Navbar() {
 
         {/* Desktop Auth Buttons */}
         <div className="hidden items-center gap-4 md:flex">
-          <Button variant="ghost" className="font-medium" asChild>
-            <Link href="/login">Log in</Link>
-          </Button>
-          <Button className="bg-blue-600 shadow-md transition-all hover:bg-blue-700 hover:shadow-lg" asChild>
-            <Link href="/register">Sign up</Link>
-          </Button>
+          <Link href="/login" className={cn(buttonVariants({ variant: "ghost" }), "font-medium")}>
+            Log in
+          </Link>
+          <Link href="/register" className={cn(buttonVariants({ variant: "default" }), "bg-blue-600 shadow-md transition-all hover:bg-blue-700 hover:shadow-lg")}>
+            Sign up
+          </Link>
         </div>
 
         {/* Mobile Menu Toggle */}
@@ -74,16 +75,12 @@ export default function Navbar() {
               </Link>
             ))}
             <div className="mt-4 flex flex-col gap-2 border-t border-gray-100 pt-4">
-              <Button variant="outline" className="w-full justify-center" asChild>
-                <Link href="/login" onClick={() => setIsMobileMenuOpen(false)}>
-                  Log in
-                </Link>
-              </Button>
-              <Button className="w-full justify-center bg-blue-600" asChild>
-                <Link href="/register" onClick={() => setIsMobileMenuOpen(false)}>
-                  Sign up
-                </Link>
-              </Button>
+              <Link href="/login" onClick={() => setIsMobileMenuOpen(false)} className={cn(buttonVariants({ variant: "outline" }), "w-full justify-center")}>
+                Log in
+              </Link>
+              <Link href="/register" onClick={() => setIsMobileMenuOpen(false)} className={cn(buttonVariants({ variant: "default" }), "w-full justify-center bg-blue-600")}>
+                Sign up
+              </Link>
             </div>
           </nav>
         </div>

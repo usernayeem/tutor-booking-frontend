@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 export default function CTA() {
   return (
@@ -18,12 +19,12 @@ export default function CTA() {
               Join thousands of students achieving their academic goals. Sign up today and get 20% off your first session!
             </p>
             <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
-              <Button size="lg" className="h-14 w-full bg-white text-blue-600 px-8 text-lg hover:bg-gray-50 sm:w-auto" asChild>
-                <Link href="/register">Get Started Now</Link>
-              </Button>
-              <Button size="lg" variant="outline" className="h-14 w-full px-8 text-lg sm:w-auto border-blue-400 text-white hover:bg-blue-700 hover:text-white" asChild>
-                <Link href="/tutors">Browse Tutors</Link>
-              </Button>
+              <Link href="/register" className={cn(buttonVariants({ size: "lg" }), "h-14 w-full bg-white text-blue-600 px-8 text-lg hover:bg-gray-50 sm:w-auto")}>
+                Get Started Now
+              </Link>
+              <Link href="/tutors" className={cn(buttonVariants({ size: "lg", variant: "outline" }), "h-14 w-full px-8 text-lg sm:w-auto border-blue-400 text-white hover:bg-blue-700 hover:text-white")}>
+                Browse Tutors
+              </Link>
             </div>
           </div>
         </div>
