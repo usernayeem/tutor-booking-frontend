@@ -1,7 +1,17 @@
+"use client";
+
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Star, GraduationCap, Clock, MapPin, CheckCircle2, ChevronLeft } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Star, GraduationCap, Clock, MapPin, CheckCircle2, ChevronLeft, CalendarIcon } from "lucide-react";
+import { format } from "date-fns";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { cn } from "@/lib/utils";
 
 // Mock data (will fetch by ID later)
 const MOCK_TUTOR = {
@@ -20,8 +30,28 @@ const MOCK_TUTOR = {
 };
 
 export default function TutorProfilePage({ params }: { params: { id: string } }) {
+  const router = useRouter();
+  const [date, setDate] = useState<Date | undefined>(undefined);
+  const [time, setTime] = useState<string>("");
+  const [isBooking, setIsBooking] = useState(false);
+
   // In a real app, we would fetch the tutor using params.id
   const tutor = MOCK_TUTOR;
+
+  const handleBooking = () => {
+    if (!date || !time) {
+      toast.error("Please select a date and time");
+      return;
+    }
+    
+    setIsBooking(true);
+    // Simulate API call for checkout/booking
+    setTimeout(() => {
+      setIsBooking(false);
+      toast.success("Session booked successfully! Check your dashboard.");
+      router.push("/dashboard/student");
+    }, 1500);
+  };
 
   return (
     <div className="container mx-auto px-4 py-8 md:py-12 max-w-6xl">
@@ -101,23 +131,58 @@ export default function TutorProfilePage({ params }: { params: { id: string } })
               </div>
             </div>
 
-            <div className="space-y-4 mb-8">
-              <div className="flex items-center gap-3 text-gray-700">
-                <CheckCircle2 className="h-5 w-5 text-green-500 shrink-0" />
-                <span>1-on-1 Video Lessons</span>
+            <div className="space-y-6 mb-8">
+              {/* Date Picker */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-900">Select Date</label>
+                <Popover>
+                  <PopoverTrigger 
+                    className={cn(
+                      buttonVariants({ variant: "outline" }),
+                      "w-full justify-start text-left font-normal h-12",
+                      !date && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {date ? format(date, "PPP") : <span>Pick a date</span>}
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={date}
+                      onSelect={setDate}
+                      initialFocus
+                      disabled={(date) => date < new Date() || date < new Date("1900-01-01")}
+                    />
+                  </PopoverContent>
+                </Popover>
               </div>
-              <div className="flex items-center gap-3 text-gray-700">
-                <CheckCircle2 className="h-5 w-5 text-green-500 shrink-0" />
-                <span>Personalized Study Plan</span>
-              </div>
-              <div className="flex items-center gap-3 text-gray-700">
-                <CheckCircle2 className="h-5 w-5 text-green-500 shrink-0" />
-                <span>Free trial session (15 mins)</span>
+
+              {/* Time Slot Picker */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-900">Select Time</label>
+                <Select onValueChange={setTime} value={time}>
+                  <SelectTrigger className="h-12">
+                    <SelectValue placeholder="Select a time slot" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="09:00">09:00 AM</SelectItem>
+                    <SelectItem value="10:00">10:00 AM</SelectItem>
+                    <SelectItem value="13:00">01:00 PM</SelectItem>
+                    <SelectItem value="15:00">03:00 PM</SelectItem>
+                    <SelectItem value="17:00">05:00 PM</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
-            <Button size="lg" className="w-full h-14 text-lg bg-blue-600 hover:bg-blue-700 shadow-md">
-              Book a Trial Session
+            <Button 
+              size="lg" 
+              className="w-full h-14 text-lg bg-blue-600 hover:bg-blue-700 shadow-md"
+              onClick={handleBooking}
+              disabled={isBooking}
+            >
+              {isBooking ? "Confirming..." : "Book Session"}
             </Button>
             <Button size="lg" variant="outline" className="w-full h-14 text-lg mt-3">
               Send Message
