@@ -9,9 +9,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function LoginPage() {
-  const router = useRouter();
+  const { login } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({ email: "", password: "" });
 
@@ -23,12 +24,13 @@ export default function LoginPage() {
     e.preventDefault();
     setIsLoading(true);
     
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      await login(formData);
+    } catch (error) {
+      // Error is handled by context
+    } finally {
       setIsLoading(false);
-      toast.success("Logged in successfully!");
-      router.push("/dashboard/student"); // Default route, will be dynamic based on role later
-    }, 1500);
+    }
   };
 
   return (

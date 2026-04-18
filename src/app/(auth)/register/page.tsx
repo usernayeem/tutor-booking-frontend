@@ -10,9 +10,10 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function RegisterPage() {
-  const router = useRouter();
+  const { register } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [role, setRole] = useState("STUDENT"); // or TUTOR
   const [formData, setFormData] = useState({ name: "", email: "", password: "", confirmPassword: "" });
@@ -30,12 +31,13 @@ export default function RegisterPage() {
 
     setIsLoading(true);
     
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      await register({ ...formData, role });
+    } catch (error) {
+      // Error handled by context
+    } finally {
       setIsLoading(false);
-      toast.success("Account created successfully! Please login.");
-      router.push("/login");
-    }, 1500);
+    }
   };
 
   return (
