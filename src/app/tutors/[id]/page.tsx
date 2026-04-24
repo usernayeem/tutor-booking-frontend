@@ -1,57 +1,95 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, use } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Star, GraduationCap, Clock, MapPin, CheckCircle2, ChevronLeft, CalendarIcon } from "lucide-react";
+import { Star, GraduationCap, Clock, MapPin, CheckCircle2, ChevronLeft, MessageSquare } from "lucide-react";
 import { format } from "date-fns";
-import { Button, buttonVariants } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
+import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { cn } from "@/lib/utils";
+import api from "@/services/api";
 
-// Mock data (will fetch by ID later)
-const MOCK_TUTOR = {
-  id: 1,
-  name: "Dr. Sarah Jenkins",
-  subject: "Advanced Mathematics",
-  rating: 4.9,
-  reviews: 120,
-  hourlyRate: 45,
-  image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=800&h=800",
-  experience: "8 years",
-  location: "Online",
-  about: "I am a former university professor with a Ph.m. in Applied Mathematics. I specialize in making complex mathematical concepts accessible and intuitive. My teaching philosophy focuses on building a strong foundational understanding before tackling advanced problem-solving techniques. I have successfully helped over 500 students improve their grades and gain confidence in Calculus, Linear Algebra, and Statistics.",
-  education: "Ph.D. in Mathematics, Stanford University",
-  languages: ["English (Native)", "Spanish (Conversational)"],
-};
-
-export default function TutorProfilePage({ params }: { params: { id: string } }) {
+export default function TutorProfilePage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
   const router = useRouter();
-  const [date, setDate] = useState<Date | undefined>(undefined);
-  const [time, setTime] = useState<string>("");
+  const [selectedScheduleId, setSelectedScheduleId] = useState<string>("");
   const [isBooking, setIsBooking] = useState(false);
+  const [tutor, setTutor] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [reviews, setReviews] = useState<any[]>([]);
 
-  // In a real app, we would fetch the tutor using params.id
-  const tutor = MOCK_TUTOR;
+  useEffect(() => {
+    const fetchTutor = async () => {
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1"}/tutors/${id}`);
+        if (res.ok) {
+          const result = await res.json();
+          const tutorData = result.data;
+          setTutor(tutorData);
+          // Fetch reviews for this tutor using GET /reviews/:tutorId
+          try {
+            const reviewsRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1"}/reviews/${tutorData.id}`);
+            if (reviewsRes.ok) {
+              const reviewsResult = await reviewsRes.json();
+              setReviews(reviewsResult.data || []);
+            }
+          } catch (err) {
+            console.error("Failed to fetch reviews:", err);
+          }
+        }
+      } catch (error) {
+        console.error("Failed to fetch tutor:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchTutor();
+  }, [id]);
 
-  const handleBooking = () => {
-    if (!date || !time) {
-      toast.error("Please select a date and time");
+  const handleBooking = async () => {
+    if (!selectedScheduleId) {
+      toast.error("Please select an available time slot");
       return;
     }
     
     setIsBooking(true);
-    // Simulate API call for checkout/booking
-    setTimeout(() => {
+    try {
+      const res = await api.post("/sessions", {
+        tutorId: tutor.id,
+        scheduleId: selectedScheduleId
+      });
+      if (res.data?.success) {
+        toast.success("Session booked successfully! Check your dashboard.");
+        router.push("/dashboard/student");
+      }
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Failed to book session");
+    } finally {
       setIsBooking(false);
-      toast.success("Session booked successfully! Check your dashboard.");
-      router.push("/dashboard/student");
-    }, 1500);
+    }
   };
+
+  if (isLoading) {
+    return <div className="container mx-auto px-4 py-12 text-center text-gray-500">Loading tutor profile...</div>;
+  }
+
+  if (!tutor) {
+    return <div className="container mx-auto px-4 py-12 text-center text-red-500">Tutor not found.</div>;
+  }
+
+  const tutorName = tutor.user?.name || "Unknown Tutor";
+  const tutorSubject = tutor.tutorSubjects?.[0]?.subject?.name || "General";
+  const tutorImage = tutor.profilePhoto || "https://i.ibb.co.com/GQzR5BLS/image-not-found.webp";
+  const tutorAbout = tutor.bio || "No description provided.";
+  const avgRating = reviews.length > 0
+    ? (reviews.reduce((sum: number, r: any) => sum + r.rating, 0) / reviews.length).toFixed(1)
+    : tutor.rating || "New";
+  const tutorReviewsCount = reviews.length || tutor.reviews?.length || 0;
+  const tutorExperience = tutor.experience ? `${tutor.experience} years` : "0 years";
+  const tutorLocation = "Online";
+  const tutorEducation = tutor.qualification || "Not specified";
 
   return (
     <div className="container mx-auto px-4 py-8 md:py-12 max-w-6xl">
@@ -67,8 +105,8 @@ export default function TutorProfilePage({ params }: { params: { id: string } })
           <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-gray-100 flex flex-col md:flex-row gap-8 items-center md:items-start">
             <div className="relative w-40 h-40 shrink-0">
               <Image
-                src={tutor.image}
-                alt={tutor.name}
+                src={tutorImage}
+                alt={tutorName}
                 fill
                 className="rounded-full object-cover border-4 border-white shadow-lg"
               />
@@ -80,18 +118,18 @@ export default function TutorProfilePage({ params }: { params: { id: string } })
                 <CheckCircle2 className="h-4 w-4" />
                 Verified Tutor
               </div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">{tutor.name}</h1>
-              <p className="text-xl text-gray-600 mb-4">{tutor.subject}</p>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">{tutorName}</h1>
+              <p className="text-xl text-gray-600 mb-4">{tutorSubject}</p>
               
               <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 md:gap-6 text-sm text-gray-600">
                 <div className="flex items-center gap-1.5">
                   <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
-                  <span className="font-bold text-gray-900">{tutor.rating}</span>
-                  <span>({tutor.reviews} reviews)</span>
+                  <span className="font-bold text-gray-900">{avgRating}</span>
+                  <span>({tutorReviewsCount} reviews)</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <MapPin className="h-5 w-5 text-gray-400" />
-                  <span>{tutor.location}</span>
+                  <span>{tutorLocation}</span>
                 </div>
               </div>
             </div>
@@ -100,7 +138,7 @@ export default function TutorProfilePage({ params }: { params: { id: string } })
           {/* About Section */}
           <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-gray-100">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">About Me</h2>
-            <p className="text-gray-600 leading-relaxed text-lg">{tutor.about}</p>
+            <p className="text-gray-600 leading-relaxed text-lg">{tutorAbout}</p>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8 pt-8 border-t border-gray-100">
               <div>
@@ -108,16 +146,50 @@ export default function TutorProfilePage({ params }: { params: { id: string } })
                   <GraduationCap className="h-5 w-5 text-blue-600" />
                   Education
                 </h3>
-                <p className="text-gray-600">{tutor.education}</p>
+                <p className="text-gray-600">{tutorEducation}</p>
               </div>
               <div>
                 <h3 className="font-semibold text-gray-900 flex items-center gap-2 mb-3">
                   <Clock className="h-5 w-5 text-blue-600" />
                   Experience
                 </h3>
-                <p className="text-gray-600">{tutor.experience} of teaching</p>
+                <p className="text-gray-600">{tutorExperience} of teaching</p>
               </div>
             </div>
+          </div>
+
+          {/* Reviews Section */}
+          <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-gray-100">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+              <MessageSquare className="h-6 w-6 text-blue-600" />
+              Student Reviews
+              <span className="ml-2 text-base font-normal text-gray-400">({tutorReviewsCount})</span>
+            </h2>
+            {reviews.length === 0 ? (
+              <p className="text-gray-500 text-center py-4">No reviews yet. Be the first to leave one!</p>
+            ) : (
+              <div className="space-y-4">
+                {reviews.map((review: any) => (
+                  <div key={review.id} className="border border-gray-100 rounded-2xl p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <div className="w-9 h-9 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-sm font-bold uppercase">
+                          {review.student?.user?.name?.substring(0, 2) || "ST"}
+                        </div>
+                        <span className="font-semibold text-gray-800">{review.student?.user?.name || "Student"}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        {[1,2,3,4,5].map((s) => (
+                          <Star key={s} className={`w-4 h-4 ${s <= review.rating ? "fill-yellow-400 text-yellow-400" : "text-gray-200"}`} />
+                        ))}
+                      </div>
+                    </div>
+                    {review.comment && <p className="text-gray-600 text-sm mt-1">{review.comment}</p>}
+                    <p className="text-xs text-gray-400 mt-2">{review.createdAt ? format(new Date(review.createdAt), "PP") : ""}</p>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
@@ -126,51 +198,29 @@ export default function TutorProfilePage({ params }: { params: { id: string } })
           <div className="bg-white rounded-3xl p-6 md:p-8 shadow-xl border border-gray-100 sticky top-24">
             <div className="flex justify-between items-end mb-6">
               <div>
-                <span className="text-3xl font-extrabold text-gray-900">${tutor.hourlyRate}</span>
+                <span className="text-3xl font-extrabold text-gray-900">${tutor.hourlyRate || 0}</span>
                 <span className="text-gray-500">/hour</span>
               </div>
             </div>
 
             <div className="space-y-6 mb-8">
-              {/* Date Picker */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-900">Select Date</label>
-                <Popover>
-                  <PopoverTrigger 
-                    className={cn(
-                      buttonVariants({ variant: "outline" }),
-                      "w-full justify-start text-left font-normal h-12",
-                      !date && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {date ? format(date, "PPP") : <span>Pick a date</span>}
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={date}
-                      onSelect={setDate}
-                      initialFocus
-                      disabled={(date) => date < new Date() || date < new Date("1900-01-01")}
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
-
               {/* Time Slot Picker */}
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-900">Select Time</label>
-                <Select onValueChange={setTime} value={time}>
+                <label className="text-sm font-medium text-gray-900">Select Available Slot</label>
+                <Select onValueChange={setSelectedScheduleId} value={selectedScheduleId}>
                   <SelectTrigger className="h-12">
-                    <SelectValue placeholder="Select a time slot" />
+                    <SelectValue placeholder="Choose a time slot" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="09:00">09:00 AM</SelectItem>
-                    <SelectItem value="10:00">10:00 AM</SelectItem>
-                    <SelectItem value="13:00">01:00 PM</SelectItem>
-                    <SelectItem value="15:00">03:00 PM</SelectItem>
-                    <SelectItem value="17:00">05:00 PM</SelectItem>
+                    {tutor?.tutorSchedules?.filter((ts: any) => !ts.isBooked).length > 0 ? (
+                      tutor.tutorSchedules.filter((ts: any) => !ts.isBooked).map((ts: any) => (
+                        <SelectItem key={ts.scheduleId} value={ts.scheduleId}>
+                          {ts.schedule?.dayOfWeek} • {ts.schedule?.startTime ? format(new Date(ts.schedule.startTime), "p") : ""} - {ts.schedule?.endTime ? format(new Date(ts.schedule.endTime), "p") : ""}
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <SelectItem value="none" disabled>No slots available</SelectItem>
+                    )}
                   </SelectContent>
                 </Select>
               </div>

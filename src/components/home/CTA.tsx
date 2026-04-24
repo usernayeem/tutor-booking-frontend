@@ -22,7 +22,7 @@ export default function CTA() {
               <Link href="/register" className={cn(buttonVariants({ size: "lg" }), "h-14 w-full bg-white text-blue-600 px-8 text-lg hover:bg-gray-50 sm:w-auto")}>
                 Get Started Now
               </Link>
-              <Link href="/tutors" className={cn(buttonVariants({ size: "lg", variant: "outline" }), "h-14 w-full px-8 text-lg sm:w-auto border-blue-400 text-white hover:bg-blue-700 hover:text-white")}>
+              <Link href="/tutors" className={cn(buttonVariants({ size: "lg" }), "h-14 w-full bg-white text-blue-600 px-8 text-lg hover:bg-gray-50 sm:w-auto")}>
                 Browse Tutors
               </Link>
             </div>

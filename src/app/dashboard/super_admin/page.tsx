@@ -9,7 +9,7 @@ import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Users, DollarSign, BookOpen, Calendar, CheckCircle2, XCircle, Search, PlusCircle, Download, Eye } from "lucide-react";
+import { Users, DollarSign, BookOpen, Calendar, CheckCircle2, XCircle, Search, PlusCircle, ShieldAlert, Download, Eye } from "lucide-react";
 import { toast } from "sonner";
 import { adminService } from "@/services/admin";
 import api from "@/services/api";
@@ -18,7 +18,6 @@ import Swal from 'sweetalert2';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { useRouter } from "next/navigation";
-
 import {
   Table,
   TableBody,
@@ -29,17 +28,15 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 
-export default function AdminDashboard() {
+export default function SuperAdminDashboard() {
   const { user, logout } = useAuth();
   const [subjects, setSubjects] = useState<any[]>([]);
   const [usersList, setUsersList] = useState<any[]>([]);
   const [usersMeta, setUsersMeta] = useState<any>(null);
-  const [scheduleMeta, setScheduleMeta] = useState<any>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [currentSchedulePage, setCurrentSchedulePage] = useState(1);
+  const [stats, setStats] = useState<any>(null);
   const [schedules, setSchedules] = useState<any[]>([]);
   const [sessions, setSessions] = useState<any[]>([]);
-  const [stats, setStats] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedSession, setSelectedSession] = useState<any>(null);
@@ -48,6 +45,7 @@ export default function AdminDashboard() {
   
   // States for toggling views
   const [isCreatingTutor, setIsCreatingTutor] = useState(false);
+  const [isCreatingAdmin, setIsCreatingAdmin] = useState(false);
   const [isCreatingSubject, setIsCreatingSubject] = useState(false);
   const [editingUser, setEditingUser] = useState<any>(null);
   
@@ -55,6 +53,10 @@ export default function AdminDashboard() {
   const [tutorForm, setTutorForm] = useState({
     name: "", email: "", password: "", contactNumber: "", 
     hourlyRate: "", experience: "", qualification: "", subjectIds: [] as string[]
+  });
+
+  const [adminForm, setAdminForm] = useState({
+    name: "", email: "", password: "",
   });
 
   const [subjectForm, setSubjectForm] = useState({
@@ -71,34 +73,34 @@ export default function AdminDashboard() {
   });
 
   useEffect(() => {
-    if (user && user.role !== "ADMIN" && user.role !== "SUPER_ADMIN") {
-      toast.error("Unauthorized access to admin dashboard.");
+    if (user && user.role !== "SUPER_ADMIN") {
+      toast.error("Unauthorized access to super admin dashboard.");
       router.push(`/dashboard/${user.role.toLowerCase()}`);
       return;
     }
     if (user) {
       fetchData();
     }
-  }, [currentPage, currentSchedulePage, user, router]);
+  }, [currentPage, user, router]);
 
   const fetchData = async () => {
     try {
       // Pass large limits for tutors/students to ensure entity matching works across pages
-      const [subjectsRes, tutorsRes, studentsRes, usersRes, schedulesRes, sessionsRes, statsRes] = await Promise.all([
+      const [subjectsRes, tutorsRes, studentsRes, usersRes, statsRes, schedulesRes, sessionsRes] = await Promise.all([
         adminService.getSubjects(),
         api.get('/tutors?limit=1000'),
         api.get('/students?limit=1000'),
         adminService.getAllUsers(currentPage, 10),
-        adminService.getSchedules(currentSchedulePage, 10),
-        adminService.getSessions(),
-        adminService.getDashboardStats()
+        adminService.getDashboardStats(),
+        adminService.getSchedules(),
+        adminService.getSessions()
       ]);
 
       const fetchedSubjects = subjectsRes?.data?.data || subjectsRes?.data || [];
       const fetchedTutors = tutorsRes?.data?.data || tutorsRes?.data || [];
       const fetchedStudents = studentsRes?.data?.data || studentsRes?.data || [];
       const allUsers = usersRes?.data?.data || usersRes?.data || [];
-
+      
       setSubjects(fetchedSubjects);
       setStats(statsRes?.data || null);
       setUsersMeta(usersRes?.data?.meta || usersRes?.meta || null);
@@ -116,9 +118,7 @@ export default function AdminDashboard() {
 
       setUsersList(enhancedUsers);
       setSchedules(schedulesRes?.data || []);
-      setScheduleMeta(schedulesRes?.meta || null);
       setSessions(sessionsRes?.data || []);
-      setStats(statsRes?.data || null);
     } catch (error) {
       console.error("Failed to fetch dashboard data", error);
     }
@@ -150,6 +150,25 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleCreateAdmin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    try {
+      await adminService.createAdmin({
+        password: adminForm.password || "admin123",
+        admin: { name: adminForm.name, email: adminForm.email }
+      });
+      toast.success("Admin created successfully!");
+      setIsCreatingAdmin(false);
+      setAdminForm({ name: "", email: "", password: "" });
+      fetchData();
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Failed to create admin");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const handleCreateSubject = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -176,7 +195,7 @@ export default function AdminDashboard() {
       text: "You won't be able to revert this subject deletion!",
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonColor: '#2563eb',
+      confirmButtonColor: '#4f46e5',
       cancelButtonColor: '#ef4444',
       confirmButtonText: 'Yes, delete it!'
     });
@@ -259,7 +278,7 @@ export default function AdminDashboard() {
       text: "This will soft-delete the user!",
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonColor: '#2563eb',
+      confirmButtonColor: '#4f46e5',
       cancelButtonColor: '#ef4444',
       confirmButtonText: 'Yes, delete it!'
     });
@@ -295,28 +314,12 @@ export default function AdminDashboard() {
   };
 
   const handleDeleteSchedule = async (id: string) => {
-    const result = await Swal.fire({
-      title: 'Are you sure?',
-      text: "You won't be able to revert this schedule deletion!",
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#2563eb',
-      cancelButtonColor: '#ef4444',
-      confirmButtonText: 'Yes, delete it!'
-    });
-
-    if (result.isConfirmed) {
-      try {
-        await adminService.deleteSchedule(id);
-        Swal.fire(
-          'Deleted!',
-          'The schedule has been deleted.',
-          'success'
-        );
-        fetchData();
-      } catch (error: any) {
-        toast.error(error.response?.data?.message || "Failed to delete schedule");
-      }
+    try {
+      await adminService.deleteSchedule(id);
+      toast.success("Schedule deleted successfully!");
+      fetchData();
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Failed to delete schedule");
     }
   };
 
@@ -390,9 +393,10 @@ export default function AdminDashboard() {
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
       <DashboardHeader 
-        title="Admin Portal"
-        subtitle="System overview and management dashboard."
+        title="Super Admin Portal"
+        subtitle="Full system overview and top-level management dashboard."
         onLogout={logout}
+        icon={<ShieldAlert className="w-8 h-8 text-indigo-600" />}
       />
 
       <Tabs defaultValue="overview" className="w-full">
@@ -406,7 +410,7 @@ export default function AdminDashboard() {
 
         {/* Overview Tab */}
         <TabsContent value="overview" className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
             <StatCard
               title="Total Users"
               value={usersMeta?.total || usersList.length}
@@ -442,7 +446,41 @@ export default function AdminDashboard() {
 
         {/* User Management Tab */}
         <TabsContent value="users">
-          {isCreatingTutor ? (
+          {isCreatingAdmin ? (
+             <Card>
+               <CardHeader className="flex flex-row justify-between items-center bg-indigo-50 border-b border-indigo-100">
+                 <div>
+                   <CardTitle className="text-indigo-900 flex items-center gap-2">
+                     <ShieldAlert className="w-5 h-5" />
+                     Create New Admin
+                   </CardTitle>
+                   <CardDescription className="text-indigo-700">Register a brand new administrator account. This user will have high-level privileges.</CardDescription>
+                 </div>
+                 <Button variant="outline" onClick={() => setIsCreatingAdmin(false)}>Cancel</Button>
+               </CardHeader>
+               <CardContent className="pt-6">
+                 <form onSubmit={handleCreateAdmin} className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="space-y-2">
+                        <Label>Full Name</Label>
+                        <Input required value={adminForm.name} onChange={e => setAdminForm({...adminForm, name: e.target.value})} />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Email</Label>
+                        <Input type="email" required value={adminForm.email} onChange={e => setAdminForm({...adminForm, email: e.target.value})} />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Password</Label>
+                        <Input type="password" required value={adminForm.password} onChange={e => setAdminForm({...adminForm, password: e.target.value})} />
+                      </div>
+                    </div>
+                    <Button type="submit" disabled={isSubmitting} className="bg-indigo-600 hover:bg-indigo-700">
+                      {isSubmitting ? "Creating..." : "Authorize Admin"}
+                    </Button>
+                 </form>
+               </CardContent>
+             </Card>
+          ) : isCreatingTutor ? (
              <Card>
                <CardHeader className="flex flex-row justify-between items-center">
                  <div>
@@ -586,7 +624,7 @@ export default function AdminDashboard() {
                       )}
                     </div>
 
-                    <Button type="submit" disabled={isSubmitting} className="bg-blue-600 hover:bg-blue-700">
+                    <Button type="submit" disabled={isSubmitting} className="bg-indigo-600 hover:bg-indigo-700">
                       {isSubmitting ? "Saving..." : "Save Changes"}
                     </Button>
                  </form>
@@ -611,6 +649,9 @@ export default function AdminDashboard() {
                   </div>
                   <Button onClick={() => setIsCreatingTutor(true)} className="gap-2 shrink-0">
                     <PlusCircle className="w-4 h-4" /> Create Tutor
+                  </Button>
+                  <Button onClick={() => setIsCreatingAdmin(true)} className="gap-2 shrink-0 bg-indigo-600 hover:bg-indigo-700">
+                    <ShieldAlert className="w-4 h-4" /> Create Admin
                   </Button>
                 </div>
               </CardHeader>
@@ -705,7 +746,7 @@ export default function AdminDashboard() {
                       <Label>Description (Optional)</Label>
                       <Input placeholder="Short description" value={subjectForm.description} onChange={e => setSubjectForm({...subjectForm, description: e.target.value})} />
                     </div>
-                    <Button type="submit" disabled={isSubmitting} className="bg-blue-600 hover:bg-blue-700">
+                    <Button type="submit" disabled={isSubmitting} className="bg-indigo-600 hover:bg-indigo-700">
                       {isSubmitting ? "Adding..." : "Add Subject"}
                     </Button>
                  </form>
@@ -765,7 +806,7 @@ export default function AdminDashboard() {
                   <Label>End Time</Label>
                   <Input type="time" required value={scheduleForm.endTime} onChange={e => setScheduleForm({...scheduleForm, endTime: e.target.value})} />
                 </div>
-                <Button type="submit" disabled={isSubmitting} className="bg-blue-600 hover:bg-blue-700">
+                <Button type="submit" disabled={isSubmitting} className="bg-indigo-600 hover:bg-indigo-700">
                   {isSubmitting ? "Creating..." : "Generate Slots"}
                 </Button>
               </form>
@@ -796,9 +837,9 @@ export default function AdminDashboard() {
                   <TableBody>
                     {schedules.map((schedule, i) => (
                       <TableRow key={schedule.id || i}>
-                        <TableCell>{schedule.startTime ? format(new Date(schedule.startTime), "PP") : "N/A"}</TableCell>
-                        <TableCell>{schedule.startTime ? format(new Date(schedule.startTime), "p") : schedule.startTime}</TableCell>
-                        <TableCell>{schedule.endTime ? format(new Date(schedule.endTime), "p") : schedule.endTime}</TableCell>
+                        <TableCell>{schedule.startDate ? format(new Date(schedule.startDate), "PP") : "N/A"}</TableCell>
+                        <TableCell>{schedule.startTime}</TableCell>
+                        <TableCell>{schedule.endTime}</TableCell>
                         <TableCell className="text-right">
                           <Button variant="ghost" size="sm" onClick={() => handleDeleteSchedule(schedule.id)} className="text-red-500 hover:text-red-700 hover:bg-red-50">
                             Delete
@@ -814,32 +855,6 @@ export default function AdminDashboard() {
                   </TableBody>
                 </Table>
               </div>
-
-              {scheduleMeta && scheduleMeta.totalPages > 1 && (
-                <div className="flex justify-between items-center mt-4">
-                  <div className="text-sm text-gray-500">
-                    Showing page {scheduleMeta.page} of {scheduleMeta.totalPages} ({scheduleMeta.total} total schedules)
-                  </div>
-                  <div className="flex space-x-2">
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      disabled={currentSchedulePage === 1}
-                      onClick={() => setCurrentSchedulePage(prev => Math.max(prev - 1, 1))}
-                    >
-                      Previous
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      disabled={currentSchedulePage === scheduleMeta.totalPages}
-                      onClick={() => setCurrentSchedulePage(prev => prev + 1)}
-                    >
-                      Next
-                    </Button>
-                  </div>
-                </div>
-              )}
             </CardContent>
           </Card>
         </TabsContent>

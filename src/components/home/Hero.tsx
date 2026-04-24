@@ -18,24 +18,14 @@ export default function Hero() {
           <p className="mx-auto max-w-2xl text-lg text-gray-600 md:text-xl">
             Unlock your potential with personalized, 1-on-1 online tutoring. Find the perfect match for your learning style and schedule.
           </p>
-          
-          <div className="flex flex-col items-center justify-center gap-4 sm:flex-row pt-4">
-            <Link href="/tutors" className={cn(buttonVariants({ size: "lg" }), "h-14 w-full bg-blue-600 px-8 text-lg hover:bg-blue-700 sm:w-auto shadow-xl shadow-blue-200")}>
-              <Search className="mr-2 h-5 w-5" />
-              Find a Tutor
-            </Link>
-            <Link href="/register" className={cn(buttonVariants({ size: "lg", variant: "outline" }), "h-14 w-full px-8 text-lg sm:w-auto border-2")}>
-              Become a Tutor
-            </Link>
-          </div>
 
-          <div className="pt-8 flex items-center justify-center gap-8 text-sm font-medium text-gray-500">
+          <div className="flex items-center justify-center gap-8 text-sm font-medium text-gray-500">
             <div className="flex items-center gap-2">
-              <Users className="h-5 w-5 text-blue-500" />
+              <Users className="h-10 w-h-10 text-blue-500" />
               <span>10,000+ Students</span>
             </div>
             <div className="flex items-center gap-2">
-              <Star className="h-5 w-5 text-yellow-400 fill-yellow-400" />
+              <Star className="h-10 w-h-10 text-yellow-400 fill-yellow-400" />
               <span>4.9/5 Average Rating</span>
             </div>
           </div>

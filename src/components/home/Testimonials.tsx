@@ -1,30 +1,49 @@
 import Image from "next/image";
-import { Star } from "lucide-react";
+import { Star, Quote, MessageSquare } from "lucide-react";
 
-export default function Testimonials() {
-  const testimonials = [
-    {
-      id: 1,
-      content: "The tutors here are exceptional. I went from struggling in Calculus to getting an A in just two months. Highly recommended!",
-      author: "Emily Chen",
-      role: "High School Student",
-      image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&q=80&w=150&h=150",
-    },
-    {
-      id: 2,
-      content: "As a working professional, the flexible scheduling is a lifesaver. My Spanish has improved dramatically thanks to Elena.",
-      author: "David Smith",
-      role: "Software Engineer",
-      image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=150&h=150",
-    },
-    {
-      id: 3,
-      content: "The video platform is seamless and the secure payment system gives me peace of mind. Best tutoring service I've used.",
-      author: "Sarah Johnson",
-      role: "University Student",
-      image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=150&h=150",
-    },
-  ];
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1";
+
+export default async function Testimonials() {
+  let reviews: any[] = [];
+
+  try {
+    // Step 1: Fetch first few tutors
+    const tutorRes = await fetch(`${API_BASE}/tutors?limit=10`, {
+      cache: "no-store",
+    });
+
+    if (tutorRes.ok) {
+      const tutorData = await tutorRes.json();
+      const tutors: any[] =
+        tutorData?.data?.data || tutorData?.data || [];
+
+      // Step 2: For each tutor, fetch their reviews in parallel
+      const reviewPromises = tutors.slice(0, 10).map(async (tutor: any) => {
+        try {
+          const rRes = await fetch(`${API_BASE}/reviews/${tutor.id}`, {
+            cache: "no-store",
+          });
+          if (!rRes.ok) return [];
+          const rData = await rRes.json();
+          const tutorReviews: any[] = rData?.data || [];
+          // Attach tutor info to each review
+          return tutorReviews
+            .filter((r: any) => r.comment && r.comment.trim().length > 10)
+            .map((r: any) => ({
+              ...r,
+              tutorName: tutor.user?.name || "Tutor",
+            }));
+        } catch {
+          return [];
+        }
+      });
+
+      const allReviewArrays = await Promise.all(reviewPromises);
+      reviews = allReviewArrays.flat().slice(0, 3);
+    }
+  } catch (error) {
+    console.error("Failed to fetch reviews:", error);
+  }
 
   return (
     <section className="bg-blue-50 py-16 md:py-24">
@@ -34,37 +53,62 @@ export default function Testimonials() {
             Loved by Students Worldwide
           </h2>
           <p className="mt-4 text-lg text-gray-600">
-            Don't just take our word for it. Read what our students have to say.
+            Here's what our students are saying about their tutors.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
-          {testimonials.map((testimonial) => (
-            <div key={testimonial.id} className="relative rounded-2xl bg-white p-8 shadow-sm">
-              <div className="flex gap-1 mb-6 text-yellow-400">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="h-5 w-5 fill-current" />
-                ))}
-              </div>
-              <p className="mb-6 text-gray-700 italic text-lg leading-relaxed">
-                "{testimonial.content}"
-              </p>
-              <div className="flex items-center gap-4 mt-auto">
-                <Image
-                  src={testimonial.image}
-                  alt={testimonial.author}
-                  width={48}
-                  height={48}
-                  className="rounded-full object-cover"
-                />
-                <div>
-                  <h4 className="font-semibold text-gray-900">{testimonial.author}</h4>
-                  <p className="text-sm text-gray-500">{testimonial.role}</p>
+        {reviews.length > 0 ? (
+          <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
+            {reviews.map((item: any) => {
+              const authorName = item.student?.user?.name || "Student";
+              const authorRole = `Student · Tutored by ${item.tutorName}`;
+              const content = item.comment;
+              const rating = item.rating || 5;
+
+              return (
+                <div
+                  key={item.id}
+                  className="relative flex flex-col rounded-2xl bg-white p-8 shadow-sm hover:shadow-md transition-shadow"
+                >
+                  {/* Quote icon */}
+                  <Quote className="absolute top-6 right-6 h-8 w-8 text-blue-100 fill-blue-100" />
+
+                  {/* Star rating */}
+                  <div className="flex gap-1 mb-6 text-yellow-400">
+                    {[...Array(5)].map((_, i) => (
+                      <Star
+                        key={i}
+                        className={`h-5 w-5 ${
+                          i < rating ? "fill-current" : "fill-none"
+                        }`}
+                      />
+                    ))}
+                  </div>
+
+                  <p className="mb-6 text-gray-700 italic text-base leading-relaxed flex-1">
+                    &ldquo;{content}&rdquo;
+                  </p>
+
+                  <div className="flex items-center gap-4 mt-auto border-t pt-4">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 text-white font-bold text-lg shrink-0">
+                      {authorName.charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-gray-900">{authorName}</h4>
+                      <p className="text-sm text-gray-500">{authorRole}</p>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-          ))}
-        </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="text-center py-12 bg-white rounded-2xl shadow-sm border border-gray-100 max-w-2xl mx-auto">
+            <MessageSquare className="mx-auto h-12 w-12 text-gray-300 mb-3" />
+            <p className="font-medium text-gray-900 text-lg">No reviews yet.</p>
+            <p className="text-sm text-gray-500 mt-1">Check back later to see what students think about our tutors!</p>
+          </div>
+        )}
       </div>
     </section>
   );
