@@ -464,7 +464,7 @@ export default function StudentDashboard() {
                       <div className="flex items-center gap-4">
                         {profilePhotoPreview || user?.Student?.profilePhoto ? (
                           <img
-                            src={profilePhotoPreview || user?.Student?.profilePhoto}
+                            src={(profilePhotoPreview || user?.Student?.profilePhoto) as string}
                             alt="Profile"
                             className="w-16 h-16 rounded-full object-cover border-2 border-blue-200 shadow"
                           />

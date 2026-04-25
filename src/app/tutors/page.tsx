@@ -4,13 +4,22 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { TutorCard } from "@/components/tutors/TutorCard";
 
+export const dynamic = 'force-dynamic';
+
 export default async function TutorsDirectory({ searchParams }: { searchParams: Promise<{ search?: string; subjectId?: string }> }) {
   const resolvedParams = await searchParams;
   let tutors: any[] = [];
   let subjectName = "";
 
+  const isProd = process.env.NODE_ENV === "production";
+  const fallbackURL = isProd 
+    ? "https://tutor-booking-backend.vercel.app/api/v1" 
+    : "http://localhost:5000/api/v1";
+
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || fallbackURL;
+
   try {
-    const url = new URL(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1"}/tutors`);
+    const url = new URL(`${apiUrl}/tutors`);
     if (resolvedParams?.search) {
       url.searchParams.append('searchTerm', resolvedParams.search);
     }
@@ -31,7 +40,7 @@ export default async function TutorsDirectory({ searchParams }: { searchParams: 
   if (resolvedParams?.subjectId) {
     try {
       const subjectRes = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1"}/subjects`,
+        `${apiUrl}/subjects`,
         { cache: "no-store" }
       );
       if (subjectRes.ok) {

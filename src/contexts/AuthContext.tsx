@@ -17,6 +17,7 @@ interface User {
     id: string;
     contactNumber: string | null;
     address: string | null;
+    profilePhoto?: string | null;
   };
   Tutor?: {
     id: string;
@@ -24,6 +25,7 @@ interface User {
     hourlyRate: number | null;
     experience: number | null;
     qualification: string | null;
+    profilePhoto?: string | null;
   };
 }
 

@@ -1,7 +1,15 @@
 import Link from "next/link";
 import { BookOpen, ArrowRight, Lightbulb, PenTool, Database, Code, Globe, Beaker, Briefcase, Calculator } from "lucide-react";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1";
+const isProd = typeof window !== "undefined" 
+  ? window.location.hostname !== "localhost"
+  : process.env.NODE_ENV === "production";
+
+const fallbackURL = isProd 
+  ? "https://tutor-booking-backend.vercel.app/api/v1" 
+  : "http://localhost:5000/api/v1";
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || fallbackURL;
 
 // Map to match some common subject names to specific icons and colors
 const iconMap: Record<string, { icon: any, color: string, bg: string }> = {

@@ -65,7 +65,15 @@ export const authService = {
   },
 
   getGoogleLoginUrl: () => {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1";
+    const isProd = typeof window !== "undefined" 
+      ? window.location.hostname !== "localhost"
+      : process.env.NODE_ENV === "production";
+    
+    const fallbackURL = isProd 
+      ? "https://tutor-booking-backend.vercel.app/api/v1" 
+      : "http://localhost:5000/api/v1";
+
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || fallbackURL;
     const redirectPath = encodeURIComponent("/dashboard");
     return `${apiUrl}/auth/login/google?redirect=${redirectPath}`;
   },

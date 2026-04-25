@@ -3,10 +3,19 @@ import { BookOpen, ChevronRight, Search, GraduationCap } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
+export const dynamic = 'force-dynamic';
+
 export default async function SubjectsDirectory() {
   let subjects = [];
+  const isProd = process.env.NODE_ENV === "production";
+  const fallbackURL = isProd 
+    ? "https://tutor-booking-backend.vercel.app/api/v1" 
+    : "http://localhost:5000/api/v1";
+
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || fallbackURL;
+
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1"}/subjects`, {
+    const res = await fetch(`${apiUrl}/subjects`, {
       cache: "no-store",
     });
     if (res.ok) {

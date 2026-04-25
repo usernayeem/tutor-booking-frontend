@@ -22,15 +22,25 @@ export default function TutorProfilePage({ params }: { params: Promise<{ id: str
 
   useEffect(() => {
     const fetchTutor = async () => {
+      const isProd = typeof window !== "undefined" 
+        ? window.location.hostname !== "localhost"
+        : process.env.NODE_ENV === "production";
+      
+      const fallbackURL = isProd 
+        ? "https://tutor-booking-backend.vercel.app/api/v1" 
+        : "http://localhost:5000/api/v1";
+
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || fallbackURL;
+
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1"}/tutors/${id}`);
+        const res = await fetch(`${apiUrl}/tutors/${id}`);
         if (res.ok) {
           const result = await res.json();
           const tutorData = result.data;
           setTutor(tutorData);
           // Fetch reviews for this tutor using GET /reviews/:tutorId
           try {
-            const reviewsRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1"}/reviews/${tutorData.id}`);
+            const reviewsRes = await fetch(`${apiUrl}/reviews/${tutorData.id}`);
             if (reviewsRes.ok) {
               const reviewsResult = await reviewsRes.json();
               setReviews(reviewsResult.data || []);
@@ -213,7 +223,7 @@ export default function TutorProfilePage({ params }: { params: Promise<{ id: str
               {/* Time Slot Picker */}
               <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-900">Select Available Slot</label>
-                <Select onValueChange={setSelectedScheduleId} value={selectedScheduleId}>
+                <Select onValueChange={(value) => setSelectedScheduleId(value || "")} value={selectedScheduleId}>
                   <SelectTrigger className="h-12">
                     <SelectValue placeholder="Choose a time slot" />
                   </SelectTrigger>

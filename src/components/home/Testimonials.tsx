@@ -1,7 +1,12 @@
 import Image from "next/image";
 import { Star, Quote, MessageSquare } from "lucide-react";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1";
+const isProd = process.env.NODE_ENV === "production";
+const fallbackURL = isProd 
+  ? "https://tutor-booking-backend.vercel.app/api/v1" 
+  : "http://localhost:5000/api/v1";
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || fallbackURL;
 
 export default async function Testimonials() {
   let reviews: any[] = [];
