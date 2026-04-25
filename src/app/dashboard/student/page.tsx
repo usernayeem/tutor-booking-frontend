@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/table";
 import {
   Calendar, Clock, Star, DollarSign, BookOpen, User,
-  CreditCard, Eye, Trash2, CheckCircle2, XCircle, AlertTriangle,
+  CreditCard, Eye, Trash2, CheckCircle2, XCircle, AlertTriangle, ImageIcon,
 } from "lucide-react";
 import { toast } from "sonner";
 import api from "@/services/api";
@@ -24,7 +24,7 @@ import Swal from "sweetalert2";
 import { useRouter } from "next/navigation";
 
 export default function StudentDashboard() {
-  const { user, logout } = useAuth();
+  const { user, logout, refreshUser } = useAuth();
   const [sessions, setSessions] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -32,6 +32,8 @@ export default function StudentDashboard() {
   // Profile form state
   const [contactNumber, setContactNumber] = useState("");
   const [address, setAddress] = useState("");
+  const [profilePhotoFile, setProfilePhotoFile] = useState<File | null>(null);
+  const [profilePhotoPreview, setProfilePhotoPreview] = useState<string | null>(null);
 
   // Review modal state
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
@@ -54,12 +56,20 @@ export default function StudentDashboard() {
       router.push(`/dashboard/${user.role.toLowerCase()}`);
       return;
     }
-    if (user) {
-      setContactNumber(user.Student?.contactNumber || "");
-      setAddress(user.Student?.address || "");
-      fetchSessions();
-    }
-  }, [user, router]);
+    
+    const initializeData = async () => {
+      if (user) {
+        if (!user.Student) {
+          await refreshUser();
+        }
+        setContactNumber(user.Student?.contactNumber || "");
+        setAddress(user.Student?.address || "");
+        fetchSessions();
+      }
+    };
+
+    initializeData();
+  }, [user, router, refreshUser]);
 
   const fetchSessions = async () => {
     setIsLoading(true);
@@ -115,8 +125,16 @@ export default function StudentDashboard() {
     }
     setIsSubmitting(true);
     try {
-      await api.patch(`/students/${user.Student.id}`, { contactNumber, address });
+      const formData = new FormData();
+      formData.append("contactNumber", contactNumber);
+      formData.append("address", address);
+      if (profilePhotoFile) formData.append("file", profilePhotoFile);
+
+      await api.patch(`/students/${user.Student.id}`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
       toast.success("Profile updated successfully!");
+      setProfilePhotoFile(null);
     } catch (error: any) {
       toast.error(error.response?.data?.message || "Failed to update profile");
     } finally {
@@ -188,6 +206,7 @@ export default function StudentDashboard() {
 
   const getStatusBadge = (status: string) => {
     const map: Record<string, string> = {
+      PENDING: "bg-yellow-100 text-yellow-700",
       SCHEDULED: "bg-blue-100 text-blue-700",
       CONFIRMED: "bg-green-100 text-green-700",
       COMPLETED: "bg-gray-100 text-gray-700",
@@ -203,12 +222,16 @@ export default function StudentDashboard() {
   };
 
   const upcomingSessions = sessions.filter(
-    (s) => s.status === "SCHEDULED" || s.status === "CONFIRMED"
+    (s) => s.status === "SCHEDULED" || s.status === "CONFIRMED" || s.status === "PENDING"
   );
   const completedSessions = sessions.filter((s) => s.status === "COMPLETED");
   const uniqueTutors = new Set(sessions.filter((s) => s.tutorId).map((s) => s.tutorId));
   const nextSession = [...upcomingSessions].sort(
-    (a, b) => new Date(a.sessionDate).getTime() - new Date(b.sessionDate).getTime()
+    (a, b) => {
+      const timeA = a.schedule?.startTime ? new Date(a.schedule.startTime).getTime() : 0;
+      const timeB = b.schedule?.startTime ? new Date(b.schedule.startTime).getTime() : 0;
+      return timeA - timeB;
+    }
   )[0];
 
   return (
@@ -435,6 +458,50 @@ export default function StudentDashboard() {
                 </CardHeader>
                 <CardContent>
                   <form onSubmit={handleUpdateProfile} className="space-y-4">
+                    {/* Profile Photo */}
+                    <div className="space-y-2">
+                      <Label className="flex items-center gap-2"><ImageIcon className="w-4 h-4" /> Profile Photo</Label>
+                      <div className="flex items-center gap-4">
+                        {profilePhotoPreview || user?.Student?.profilePhoto ? (
+                          <img
+                            src={profilePhotoPreview || user?.Student?.profilePhoto}
+                            alt="Profile"
+                            className="w-16 h-16 rounded-full object-cover border-2 border-blue-200 shadow"
+                          />
+                        ) : (
+                          <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center border-2 border-dashed border-blue-300 text-blue-500 font-bold text-xl uppercase">
+                            {user?.name?.substring(0, 2) || "ST"}
+                          </div>
+                        )}
+                        <div>
+                          <input
+                            type="file"
+                            id="student-photo-upload"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                setProfilePhotoFile(file);
+                                setProfilePhotoPreview(URL.createObjectURL(file));
+                              }
+                            }}
+                          />
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => document.getElementById('student-photo-upload')?.click()}
+                          >
+                            {profilePhotoFile ? "Change Photo" : "Upload Photo"}
+                          </Button>
+                          {profilePhotoFile && (
+                            <p className="text-xs text-green-600 mt-1 font-medium">{profilePhotoFile.name}</p>
+                          )}
+                          <p className="text-xs text-gray-400 mt-1">PNG, JPG or WEBP — max 2MB</p>
+                        </div>
+                      </div>
+                    </div>
                     <div className="space-y-2">
                       <Label>Full Name</Label>
                       <Input value={user?.name || ""} disabled className="bg-gray-50" />

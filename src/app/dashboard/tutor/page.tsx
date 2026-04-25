@@ -10,7 +10,7 @@ import { StatCard } from "@/components/dashboard/StatCard";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Calendar, Clock, Video, Users, DollarSign, MessageCircle, CheckCircle, Eye, Star } from "lucide-react";
+import { Calendar, Clock, Video, Users, DollarSign, MessageCircle, CheckCircle, Eye, Star, ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 import Swal from "sweetalert2";
 import { tutorService } from "@/services/tutor";
@@ -42,6 +42,8 @@ export default function TutorDashboard() {
     experience: "",
     qualification: ""
   });
+  const [profilePhotoFile, setProfilePhotoFile] = useState<File | null>(null);
+  const [profilePhotoPreview, setProfilePhotoPreview] = useState<string | null>(null);
 
   useEffect(() => {
     if (user && user.role !== "TUTOR") {
@@ -69,7 +71,7 @@ export default function TutorDashboard() {
       
       // Assume the tutor specific data is embedded in the profile response, 
       // or we just use fetchedProfile.tutor directly if it exists.
-      const tData = fetchedProfile?.tutor || fetchedProfile;
+      const tData = fetchedProfile?.Tutor || fetchedProfile;
       setTutorData(tData);
 
       if (tData?.id) {
@@ -103,17 +105,23 @@ export default function TutorDashboard() {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      // Update tutor specific info
       if (tutorData?.id) {
-        await tutorService.updateProfile(tutorData.id, {
-          bio: profileForm.bio,
-          hourlyRate: Number(profileForm.hourlyRate),
-          experience: Number(profileForm.experience),
-          qualification: profileForm.qualification
-        });
+        const formData = new FormData();
+        if (profileForm.name) formData.append("name", profileForm.name);
+        if (profileForm.bio) formData.append("bio", profileForm.bio);
+        if (profileForm.qualification) formData.append("qualification", profileForm.qualification);
+        if (profileForm.hourlyRate !== "" && !isNaN(Number(profileForm.hourlyRate))) {
+          formData.append("hourlyRate", String(Number(profileForm.hourlyRate)));
+        }
+        if (profileForm.experience !== "" && !isNaN(Number(profileForm.experience))) {
+          formData.append("experience", String(Number(profileForm.experience)));
+        }
+        if (profilePhotoFile) formData.append("file", profilePhotoFile);
+
+        await tutorService.updateProfile(tutorData.id, formData);
+        toast.success("Profile updated successfully!");
       }
-      
-      toast.success("Tutor profile updated successfully!");
+      setProfilePhotoFile(null);
       fetchData();
     } catch (error: any) {
       toast.error(error.response?.data?.message || "Failed to update profile");
@@ -124,8 +132,8 @@ export default function TutorDashboard() {
 
   const toggleSchedule = async (scheduleId: string, isCurrentlySelected: boolean, tutorScheduleId?: string) => {
     try {
-      if (isCurrentlySelected && tutorScheduleId) {
-        await tutorService.deleteTutorSchedule(tutorScheduleId);
+      if (isCurrentlySelected) {
+        await tutorService.deleteTutorSchedule(scheduleId);
         toast.success("Schedule slot removed.");
       } else {
         await tutorService.createTutorSchedules({ scheduleIds: [scheduleId] });
@@ -185,11 +193,13 @@ export default function TutorDashboard() {
   const completedSessions = sessions.filter(s => s.status === "COMPLETED");
   const nextSession = upcomingSessions.length > 0 ? upcomingSessions[0] : null;
 
-  // Calculate earnings (assuming payment logic exists and amount is in session or related payment model)
-  const totalEarnings = completedSessions.reduce((acc, curr) => {
-    // If the backend returns payment info nested, use it. Otherwise, fallback to a rough estimate based on rate.
-    const amount = curr.payment?.amount || (curr.tutor?.hourlyRate || tutorData?.hourlyRate || 0);
-    return acc + Number(amount);
+  // Calculate earnings based on paid sessions
+  const totalEarnings = sessions.reduce((acc, curr) => {
+    if (curr.paymentStatus === "PAID") {
+      const amount = curr.payment?.amount || (curr.tutor?.hourlyRate || tutorData?.hourlyRate || 0);
+      return acc + Number(amount);
+    }
+    return acc;
   }, 0);
 
   return (
@@ -248,12 +258,11 @@ export default function TutorDashboard() {
                     <p className="text-gray-600">Booking Reference: #{nextSession.id?.substring(0, 6)}</p>
                     <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
                       <span className="flex items-center gap-1">
-                        <Calendar className="w-4 h-4" /> 
-                        {nextSession.schedule?.startDate ? format(new Date(nextSession.schedule.startDate), "PP") : "Scheduled"}
+                        {nextSession.schedule?.startTime ? format(new Date(nextSession.schedule.startTime), "PP") : "Scheduled"}
                       </span>
                       <span className="flex items-center gap-1">
                         <Clock className="w-4 h-4" /> 
-                        {nextSession.schedule?.startTime || "TBD"}
+                        {nextSession.schedule?.startTime ? format(new Date(nextSession.schedule.startTime), "p") : "TBD"}
                       </span>
                     </div>
                   </div>
@@ -296,8 +305,11 @@ export default function TutorDashboard() {
                      return (
                        <div key={schedule.id} className={`p-4 border rounded-lg flex flex-col gap-3 transition-colors ${isSelected ? 'border-blue-500 bg-blue-50' : 'bg-white'}`}>
                           <div>
-                            <p className="font-medium">{format(new Date(schedule.startDate || schedule.date), "EEEE, MMM d, yyyy")}</p>
-                            <p className="text-sm text-gray-500">{schedule.startTime} - {schedule.endTime}</p>
+                            <p className="font-medium">{schedule.startTime ? format(new Date(schedule.startTime), "EEEE, MMM d, yyyy") : "Unknown Date"}</p>
+                            <p className="text-sm text-gray-500">
+                              {schedule.startTime ? format(new Date(schedule.startTime), "p") : ""} - 
+                              {schedule.endTime ? format(new Date(schedule.endTime), "p") : ""}
+                            </p>
                           </div>
                           
                           <div className="mt-auto pt-2">
@@ -339,7 +351,9 @@ export default function TutorDashboard() {
                   <div>
                     <h4 className="font-semibold">{session.student?.user?.name || "Unknown Student"}</h4>
                     <p className="text-sm text-gray-500 mt-1">
-                      {session.schedule?.startDate ? format(new Date(session.schedule.startDate), "PP") : "Date TBD"} at {session.schedule?.startTime || "Time TBD"}
+                      {session.schedule?.startTime 
+                        ? `${format(new Date(session.schedule.startTime), "PP")} at ${format(new Date(session.schedule.startTime), "p")}` 
+                        : "Date TBD"}
                     </p>
                     <div className="flex gap-2 mt-2">
                       <Badge variant={
@@ -394,13 +408,58 @@ export default function TutorDashboard() {
             </CardHeader>
             <CardContent>
               <form onSubmit={handleUpdateProfile} className="space-y-6">
+                {/* Profile Photo Upload */}
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2"><ImageIcon className="w-4 h-4" /> Profile Photo</Label>
+                  <div className="flex items-center gap-5">
+                    {profilePhotoPreview || tutorData?.profilePhoto ? (
+                      <img
+                        src={profilePhotoPreview || tutorData?.profilePhoto}
+                        alt="Profile"
+                        className="w-20 h-20 rounded-full object-cover border-2 border-blue-200 shadow"
+                      />
+                    ) : (
+                      <div className="w-20 h-20 rounded-full bg-blue-100 flex items-center justify-center border-2 border-dashed border-blue-300 text-blue-400 font-bold text-2xl uppercase">
+                        {profileForm.name?.substring(0, 2) || "TU"}
+                      </div>
+                    )}
+                    <div>
+                      <input
+                        type="file"
+                        id="tutor-photo-upload"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            setProfilePhotoFile(file);
+                            setProfilePhotoPreview(URL.createObjectURL(file));
+                          }
+                        }}
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => document.getElementById('tutor-photo-upload')?.click()}
+                      >
+                        {profilePhotoFile ? "Change Photo" : "Upload Photo"}
+                      </Button>
+                      {profilePhotoFile && (
+                        <p className="text-xs text-green-600 mt-1 font-medium">{profilePhotoFile.name}</p>
+                      )}
+                      <p className="text-xs text-gray-400 mt-1">PNG, JPG or WEBP — max 2MB</p>
+                    </div>
+                  </div>
+                </div>
+
                 <div className="space-y-2">
                   <Label htmlFor="name">Full Name</Label>
                   <Input 
                     id="name" 
                     value={profileForm.name} 
-                    disabled 
-                    className="bg-gray-50 text-gray-500 cursor-not-allowed"
+                    onChange={e => setProfileForm({...profileForm, name: e.target.value})}
+                    placeholder="Enter your full name"
                   />
                 </div>
                 

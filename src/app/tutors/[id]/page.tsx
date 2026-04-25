@@ -61,8 +61,14 @@ export default function TutorProfilePage({ params }: { params: Promise<{ id: str
         scheduleId: selectedScheduleId
       });
       if (res.data?.success) {
-        toast.success("Session booked successfully! Check your dashboard.");
-        router.push("/dashboard/student");
+        const paymentUrl = res.data?.data?.paymentUrl;
+        if (paymentUrl) {
+          toast.success("Session booked! Redirecting to payment...");
+          window.location.href = paymentUrl;
+        } else {
+          toast.success("Session booked successfully! Check your dashboard.");
+          router.push("/dashboard/student");
+        }
       }
     } catch (error: any) {
       toast.error(error.response?.data?.message || "Failed to book session");
@@ -233,9 +239,6 @@ export default function TutorProfilePage({ params }: { params: Promise<{ id: str
               disabled={isBooking}
             >
               {isBooking ? "Confirming..." : "Book Session"}
-            </Button>
-            <Button size="lg" variant="outline" className="w-full h-14 text-lg mt-3">
-              Send Message
             </Button>
             
             <p className="text-center text-sm text-gray-500 mt-4">

@@ -28,11 +28,7 @@ export const adminService = {
 
   createSubject: async (data: FormData | any) => {
     // If sending FormData for multer
-    const response = await api.post("/subjects", data, {
-      headers: {
-        "Content-Type": data instanceof FormData ? "multipart/form-data" : "application/json",
-      },
-    });
+    const response = await api.post("/subjects", data);
     return response.data;
   },
 
@@ -41,12 +37,12 @@ export const adminService = {
     return response.data;
   },
 
-  updateTutor: async (id: string, payload: any) => {
+  updateTutor: async (id: string, payload: FormData | any) => {
     const response = await api.patch(`/tutors/${id}`, payload);
     return response.data;
   },
 
-  updateStudent: async (id: string, payload: any) => {
+  updateStudent: async (id: string, payload: FormData | any) => {
     const response = await api.patch(`/students/${id}`, payload);
     return response.data;
   },

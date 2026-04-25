@@ -80,11 +80,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       setIsLoading(true);
       const response: any = await authService.login(data);
-      const loggedInUser = response.data.user;
-      setUser(loggedInUser);
+      
+      // Fetch full user profile with relations after login
+      const profileResponse: any = await authService.getMe();
+      const fullUser = profileResponse.data;
+      
+      setUser(fullUser);
       document.cookie = "isLoggedIn=true; path=/";
       toast.success("Successfully logged in!");
-      const dashboardRoute = loggedInUser.role.toLowerCase();
+      const dashboardRoute = fullUser.role.toLowerCase();
       router.push(`/dashboard/${dashboardRoute}`);
     } catch (error: any) {
       const msg = error.response?.data?.message || error.message || "Login failed";

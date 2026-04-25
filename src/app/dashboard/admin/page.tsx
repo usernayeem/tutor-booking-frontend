@@ -9,7 +9,7 @@ import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Users, DollarSign, BookOpen, Calendar, CheckCircle2, XCircle, Search, PlusCircle, Download, Eye } from "lucide-react";
+import { Users, DollarSign, BookOpen, Calendar, CheckCircle2, XCircle, Search, PlusCircle, Download, Eye, ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 import { adminService } from "@/services/admin";
 import api from "@/services/api";
@@ -60,6 +60,8 @@ export default function AdminDashboard() {
   const [subjectForm, setSubjectForm] = useState({
     name: "", description: ""
   });
+  const [subjectIconFile, setSubjectIconFile] = useState<File | null>(null);
+  const [subjectIconPreview, setSubjectIconPreview] = useState<string | null>(null);
 
   const [editUserForm, setEditUserForm] = useState({
     name: "", contactNumber: "", hourlyRate: "", experience: "", qualification: "",
@@ -157,11 +159,14 @@ export default function AdminDashboard() {
       const formData = new FormData();
       formData.append("name", subjectForm.name);
       if (subjectForm.description) formData.append("description", subjectForm.description);
+      if (subjectIconFile) formData.append("file", subjectIconFile);
       
       await adminService.createSubject(formData);
       toast.success("Subject created successfully!");
       setIsCreatingSubject(false);
       setSubjectForm({ name: "", description: "" });
+      setSubjectIconFile(null);
+      setSubjectIconPreview(null);
       fetchData();
     } catch (error: any) {
       toast.error(error.response?.data?.message || "Failed to create subject");
@@ -693,22 +698,65 @@ export default function AdminDashboard() {
                    <CardTitle>Create New Subject</CardTitle>
                    <CardDescription>Add a new subject to the platform for tutoring.</CardDescription>
                  </div>
-                 <Button variant="outline" onClick={() => setIsCreatingSubject(false)}>Cancel</Button>
+                 <Button variant="outline" onClick={() => { setIsCreatingSubject(false); setSubjectIconFile(null); setSubjectIconPreview(null); }}>Cancel</Button>
                </CardHeader>
                <CardContent>
                  <form onSubmit={handleCreateSubject} className="space-y-4">
-                    <div className="space-y-2">
-                      <Label>Subject Name</Label>
-                      <Input required placeholder="e.g. Advanced Calculus" value={subjectForm.name} onChange={e => setSubjectForm({...subjectForm, name: e.target.value})} />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Description (Optional)</Label>
-                      <Input placeholder="Short description" value={subjectForm.description} onChange={e => setSubjectForm({...subjectForm, description: e.target.value})} />
-                    </div>
-                    <Button type="submit" disabled={isSubmitting} className="bg-blue-600 hover:bg-blue-700">
-                      {isSubmitting ? "Adding..." : "Add Subject"}
-                    </Button>
-                 </form>
+                     <div className="space-y-2">
+                       <Label>Subject Name</Label>
+                       <Input required placeholder="e.g. Advanced Calculus" value={subjectForm.name} onChange={e => setSubjectForm({...subjectForm, name: e.target.value})} />
+                     </div>
+                     <div className="space-y-2">
+                       <Label>Description (Optional)</Label>
+                       <Input placeholder="Short description" value={subjectForm.description} onChange={e => setSubjectForm({...subjectForm, description: e.target.value})} />
+                     </div>
+                     <div className="space-y-2">
+                       <Label className="flex items-center gap-2"><ImageIcon className="w-4 h-4" /> Subject Icon (Optional)</Label>
+                       <div className="flex items-center gap-4">
+                         {subjectIconPreview ? (
+                           <div className="relative w-16 h-16 rounded-lg border-2 border-blue-200 overflow-hidden bg-blue-50 flex items-center justify-center">
+                             <img src={subjectIconPreview} alt="Icon preview" className="w-full h-full object-cover" />
+                           </div>
+                         ) : (
+                           <div className="w-16 h-16 rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 flex items-center justify-center">
+                             <ImageIcon className="w-6 h-6 text-gray-400" />
+                           </div>
+                         )}
+                         <div className="flex-1">
+                           <label className="flex flex-col items-start gap-1 cursor-pointer">
+                             <span className="text-sm text-gray-500">Upload an icon image (PNG, JPG, SVG — max 2MB)</span>
+                             <input
+                               type="file"
+                               id="subject-icon-upload-admin"
+                               accept="image/*"
+                               className="hidden"
+                               onChange={(e) => {
+                                 const file = e.target.files?.[0];
+                                 if (file) {
+                                   setSubjectIconFile(file);
+                                   setSubjectIconPreview(URL.createObjectURL(file));
+                                 }
+                               }}
+                             />
+                             <Button
+                               type="button"
+                               variant="outline"
+                               size="sm"
+                               onClick={() => document.getElementById('subject-icon-upload-admin')?.click()}
+                             >
+                               {subjectIconFile ? "Change Image" : "Choose Image"}
+                             </Button>
+                             {subjectIconFile && (
+                               <span className="text-xs text-green-600 font-medium">{subjectIconFile.name}</span>
+                             )}
+                           </label>
+                         </div>
+                       </div>
+                     </div>
+                     <Button type="submit" disabled={isSubmitting} className="bg-blue-600 hover:bg-blue-700">
+                       {isSubmitting ? "Adding..." : "Add Subject"}
+                     </Button>
+                  </form>
                </CardContent>
             </Card>
           ) : (
@@ -724,7 +772,19 @@ export default function AdminDashboard() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {subjects.length > 0 ? subjects.map((subject) => (
                     <div key={subject.id} className="flex items-center justify-between p-4 border rounded-lg bg-white hover:bg-gray-50 transition-colors">
-                      <span className="font-medium text-gray-800">{subject.name}</span>
+                      <div className="flex items-center gap-3">
+                        {subject.iconUrl ? (
+                          <img src={subject.iconUrl} alt={subject.name} className="w-10 h-10 rounded-lg object-cover border border-gray-200" />
+                        ) : (
+                          <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center border border-blue-200">
+                            <BookOpen className="w-5 h-5 text-blue-400" />
+                          </div>
+                        )}
+                        <div>
+                          <span className="font-medium text-gray-800">{subject.name}</span>
+                          {subject.description && <p className="text-xs text-gray-500 mt-0.5">{subject.description}</p>}
+                        </div>
+                      </div>
                       <div className="flex gap-2 text-gray-500">
                         <Button variant="ghost" size="icon" onClick={() => handleDeleteSubject(subject.id)} className="hover:bg-red-50">
                           <XCircle className="w-5 h-5 text-red-500" />
