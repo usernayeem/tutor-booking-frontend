@@ -144,6 +144,10 @@ export default function AdminDashboard() {
       });
       toast.success("Tutor created successfully!");
       setIsCreatingTutor(false);
+      setTutorForm({
+        name: "", email: "", password: "", contactNumber: "", 
+        hourlyRate: "", experience: "", qualification: "", subjectIds: []
+      });
       fetchData();
     } catch (error: any) {
       toast.error(error.response?.data?.message || "Failed to create tutor");
@@ -454,7 +458,13 @@ export default function AdminDashboard() {
                    <CardTitle>Create New Tutor</CardTitle>
                    <CardDescription>Register a brand new tutor account in the system.</CardDescription>
                  </div>
-                 <Button variant="outline" onClick={() => setIsCreatingTutor(false)}>Cancel</Button>
+                  <Button variant="outline" onClick={() => {
+                    setIsCreatingTutor(false);
+                    setTutorForm({
+                      name: "", email: "", password: "", contactNumber: "", 
+                      hourlyRate: "", experience: "", qualification: "", subjectIds: []
+                    });
+                  }}>Cancel</Button>
                </CardHeader>
                <CardContent>
                  <form onSubmit={handleCreateTutor} className="space-y-6">

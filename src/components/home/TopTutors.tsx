@@ -53,9 +53,11 @@ export default async function TopTutors() {
         </div>
 
         {tutors.length > 0 ? (
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="flex flex-wrap justify-center gap-8">
             {tutors.map((tutor: any) => (
-              <TutorCard key={tutor.id} tutor={tutor} />
+              <div key={tutor.id} className="w-full max-w-[340px]">
+                <TutorCard tutor={tutor} />
+              </div>
             ))}
           </div>
         ) : (

@@ -74,7 +74,7 @@ export default async function Subjects() {
         </div>
 
         {/* Premium Subject Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="flex flex-wrap justify-center gap-8">
           {displaySubjects.map((subject: any, index: number) => {
             const mappedTheme = iconMap[subject.name as string];
             const fallbackTheme = fallbackPalette[index % fallbackPalette.length];
@@ -83,32 +83,33 @@ export default async function Subjects() {
             const iconBg = mappedTheme?.bg || fallbackTheme.bg;
 
             return (
-              <Link
-                key={subject.id}
-                href={`/tutors?subjectId=${subject.id}`}
-                className="group flex flex-col justify-center rounded-2xl bg-white p-6 shadow-sm border border-gray-100 transition-all hover:shadow-xl hover:-translate-y-1 relative overflow-hidden"
-              >
-                {/* Subtle hover gradient background */}
-                <div className="absolute inset-0 bg-gradient-to-br from-transparent to-gray-50 opacity-0 transition-opacity group-hover:opacity-100" />
-                
-                <div className="relative z-10 flex items-start justify-between">
-                  <div className={`mb-4 flex h-12 w-12 items-center justify-center rounded-xl ${iconBg} transition-transform duration-300 group-hover:scale-110`}>
-                    <IconComponent className={`h-6 w-6 ${iconColor}`} />
+              <div key={subject.id} className="w-full max-w-[340px] flex">
+                <Link
+                  href={`/tutors?subjectId=${subject.id}`}
+                  className="group flex flex-col w-full justify-center rounded-2xl bg-white p-6 shadow-sm border border-gray-100 transition-all hover:shadow-xl hover:-translate-y-1 relative overflow-hidden"
+                >
+                  {/* Subtle hover gradient background */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-transparent to-gray-50 opacity-0 transition-opacity group-hover:opacity-100" />
+                  
+                  <div className="relative z-10 flex items-start justify-between">
+                    <div className={`mb-4 flex h-12 w-12 items-center justify-center rounded-xl ${iconBg} transition-transform duration-300 group-hover:scale-110`}>
+                      <IconComponent className={`h-6 w-6 ${iconColor}`} />
+                    </div>
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full border border-gray-100 bg-white shadow-sm transition-colors group-hover:border-blue-200 group-hover:bg-blue-50 text-gray-400 group-hover:text-blue-600">
+                      <ArrowRight className="h-4 w-4" />
+                    </div>
                   </div>
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full border border-gray-100 bg-white shadow-sm transition-colors group-hover:border-blue-200 group-hover:bg-blue-50 text-gray-400 group-hover:text-blue-600">
-                    <ArrowRight className="h-4 w-4" />
-                  </div>
-                </div>
-                
-                <h3 className="relative z-10 text-lg font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
-                  {subject.name}
-                </h3>
-                {subject.description && (
-                  <p className="relative z-10 mt-2 text-sm text-gray-500 line-clamp-2">
-                    {subject.description}
-                  </p>
-                )}
-              </Link>
+                  
+                  <h3 className="relative z-10 text-lg font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
+                    {subject.name}
+                  </h3>
+                  {subject.description && (
+                    <p className="relative z-10 mt-2 text-sm text-gray-500 line-clamp-2">
+                      {subject.description}
+                    </p>
+                  )}
+                </Link>
+              </div>
             );
           })}
         </div>
