@@ -66,6 +66,8 @@ export default function RegisterPage() {
     window.location.href = googleUrl;
   };
 
+
+
   return (
     <div className="flex min-h-[calc(100vh-140px)] items-center justify-center p-4 py-12">
       <Card className="w-full max-w-md shadow-lg">
@@ -210,6 +212,8 @@ export default function RegisterPage() {
               )}
               {isGoogleLoading ? "Redirecting..." : "Continue with Google"}
             </Button>
+
+
 
             <div className="text-center text-sm text-gray-500">
               Already have an account?{" "}

@@ -418,7 +418,6 @@ export default function StudentDashboard() {
                       <TableHeader>
                         <TableRow>
                           <TableHead>Transaction ID</TableHead>
-                          <TableHead>Tutor</TableHead>
                           <TableHead>Amount</TableHead>
                           <TableHead>Status</TableHead>
                           <TableHead>Date</TableHead>
@@ -428,7 +427,6 @@ export default function StudentDashboard() {
                         {payments.map((payment) => (
                           <TableRow key={payment.id}>
                             <TableCell className="font-mono text-xs text-gray-500">{payment.transactionId?.substring(0, 20)}…</TableCell>
-                            <TableCell>{payment.session?.tutor?.user?.name || "—"}</TableCell>
                             <TableCell className="font-semibold">${payment.amount?.toFixed(2) || "0.00"}</TableCell>
                             <TableCell>
                               <span className={`px-2 py-0.5 text-xs rounded-full font-medium ${getPaymentBadge(payment.paymentStatus)}`}>

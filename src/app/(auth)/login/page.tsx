@@ -40,6 +40,8 @@ function LoginForm() {
     }
   }, [searchParams]);
 
+
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -61,6 +63,8 @@ function LoginForm() {
     const googleUrl = authService.getGoogleLoginUrl();
     window.location.href = googleUrl;
   };
+
+
 
   return (
     <div className="flex min-h-[calc(100vh-140px)] items-center justify-center p-4">
@@ -184,6 +188,8 @@ function LoginForm() {
               )}
               {isGoogleLoading ? "Redirecting..." : "Continue with Google"}
             </Button>
+
+
 
             <div className="text-center text-sm text-gray-500">
               Don&apos;t have an account?{" "}
