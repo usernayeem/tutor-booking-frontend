@@ -1,51 +1,121 @@
 "use client";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState, useRef, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { CheckCircle, ArrowRight } from "lucide-react";
+import { CheckCircle, ArrowRight, Loader2, XCircle } from "lucide-react";
+import api from "@/services/api";
+import { toast } from "sonner";
 
-export default function PaymentSuccessPage() {
+function PaymentSuccessContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const sessionId = searchParams.get("session_id");
+  const [isVerifying, setIsVerifying] = useState(true);
+  const [isSuccess, setIsSuccess] = useState(false);
+  const verificationStarted = useRef(false);
 
   useEffect(() => {
-    // Automatically redirect to student dashboard after 5 seconds
-    const timer = setTimeout(() => {
-      router.push("/dashboard/student");
-    }, 5000);
+    const verifyPayment = async () => {
+      if (!sessionId || verificationStarted.current) return;
+      
+      verificationStarted.current = true;
+      try {
+        const response = await api.post("/payment/verify-payment", {
+          stripeSessionId: sessionId
+        });
+        
+        if (response.data?.success) {
+          setIsSuccess(true);
+        } else {
+          toast.error("Payment verification failed. Please contact support if you were charged.");
+        }
+      } catch (error) {
+        console.error("Verification error:", error);
+        toast.error("An error occurred during verification.");
+      } finally {
+        setIsVerifying(false);
+      }
+    };
 
-    return () => clearTimeout(timer);
-  }, [router]);
+    if (sessionId) {
+      verifyPayment();
+    } else {
+      setIsVerifying(false);
+    }
+  }, [sessionId]);
+
+  useEffect(() => {
+    if (!isVerifying && isSuccess) {
+        const timer = setTimeout(() => {
+            router.push("/dashboard/student");
+        }, 5000);
+        return () => clearTimeout(timer);
+    }
+  }, [isVerifying, isSuccess, router]);
 
   return (
     <div className="min-h-[80vh] flex items-center justify-center px-4">
-      <div className="max-w-md w-full text-center space-y-6 p-8 bg-white rounded-2xl shadow-xl border border-green-50">
+      <div className="max-w-md w-full text-center space-y-6 p-8 bg-white rounded-2xl shadow-xl border border-gray-100">
         <div className="flex justify-center">
-          <div className="bg-green-100 p-3 rounded-full">
-            <CheckCircle className="w-16 h-16 text-green-600" />
-          </div>
+          {isVerifying ? (
+            <div className="bg-blue-100 p-4 rounded-full animate-pulse">
+              <Loader2 className="w-12 h-12 text-blue-600 animate-spin" />
+            </div>
+          ) : isSuccess ? (
+            <div className="bg-green-100 p-4 rounded-full">
+              <CheckCircle className="w-12 h-12 text-green-600" />
+            </div>
+          ) : (
+            <div className="bg-red-100 p-4 rounded-full">
+              <XCircle className="w-12 h-12 text-red-600" />
+            </div>
+          )}
         </div>
         
         <div className="space-y-2">
-          <h1 className="text-3xl font-bold text-gray-900">Payment Successful!</h1>
+          <h1 className="text-3xl font-bold text-gray-900">
+            {isVerifying ? "Verifying Payment..." : isSuccess ? "Payment Successful!" : "Verification Failed"}
+          </h1>
           <p className="text-gray-500">
-            Thank you for your payment. Your session has been successfully booked and confirmed.
+            {isVerifying 
+              ? "We are confirming your payment with Stripe. Please wait a moment." 
+              : isSuccess 
+                ? "Thank you for your payment. Your session has been successfully booked and confirmed."
+                : "We couldn't verify your payment. If you've been charged, please contact our support team."
+            }
           </p>
         </div>
 
         <div className="pt-6">
           <Link
             href="/dashboard/student"
-            className="inline-flex items-center justify-center w-full px-6 py-3 text-base font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors shadow-lg shadow-green-200 gap-2"
+            className={`inline-flex items-center justify-center w-full px-6 py-3 text-base font-medium text-white rounded-lg transition-all shadow-lg gap-2 ${
+              isSuccess ? "bg-green-600 hover:bg-green-700 shadow-green-100" : "bg-blue-600 hover:bg-blue-700 shadow-blue-100"
+            }`}
           >
-            Go to My Dashboard
+            {isSuccess ? "Go to My Dashboard" : "Back to Dashboard"}
             <ArrowRight className="w-5 h-5" />
           </Link>
-          <p className="mt-4 text-xs text-gray-400">
-            Redirecting to dashboard in a few seconds...
-          </p>
+          {isSuccess && (
+            <p className="mt-4 text-xs text-gray-400">
+              Redirecting to dashboard in a few seconds...
+            </p>
+          )}
         </div>
       </div>
     </div>
+  );
+}
+
+export default function PaymentSuccessPage() {
+  return (
+    <Suspense fallback={
+        <div className="min-h-[80vh] flex items-center justify-center">
+            <Loader2 className="w-12 h-12 text-blue-600 animate-spin" />
+        </div>
+    }>
+      <PaymentSuccessContent />
+    </Suspense>
   );
 }

@@ -942,8 +942,8 @@ export default function SuperAdminDashboard() {
                     {sessions.map((session, i) => (
                       <TableRow key={session.id || i}>
                         <TableCell className="font-mono text-xs">{session.id.substring(0,8)}...</TableCell>
-                        <TableCell>{session.student?.name || 'Unknown'}</TableCell>
-                        <TableCell>{session.tutor?.name || 'Unknown'}</TableCell>
+                        <TableCell>{session.student?.user?.name || 'Unknown'}</TableCell>
+                        <TableCell>{session.tutor?.user?.name || 'Unknown'}</TableCell>
                         <TableCell>
                           <Badge variant={session.status === 'COMPLETED' ? 'default' : session.status === 'CANCELED' ? 'destructive' : 'secondary'}>
                             {session.status}

@@ -36,9 +36,6 @@ interface AuthContextType {
   register: (data: { name: string; email: string; password: string }) => Promise<void>;
   logout: () => Promise<void>;
   changePassword: (data: { currentPassword: string; newPassword: string }) => Promise<void>;
-  verifyEmail: (data: { email: string; otp: string }) => Promise<void>;
-  forgetPassword: (email: string) => Promise<void>;
-  resetPassword: (data: { email: string; otp: string; newPassword: string }) => Promise<void>;
   refreshUser: () => Promise<void>;
 }
 
@@ -104,9 +101,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const register = async (data: { name: string; email: string; password: string }) => {
     try {
       setIsLoading(true);
-      await authService.registerStudent(data);
-      toast.success("Registration successful! Please verify your email.");
-      router.push(`/verify-email?email=${encodeURIComponent(data.email)}`);
+      const result: any = await authService.registerStudent(data);
+      
+      // Auto-login after successful registration
+      const fullUser = result?.data?.user;
+      if (fullUser) {
+        setUser(fullUser);
+        document.cookie = "isLoggedIn=true; path=/";
+        toast.success("Registration successful!");
+        const dashboardRoute = fullUser.role.toLowerCase();
+        router.push(`/dashboard/${dashboardRoute}`);
+      } else {
+        toast.success("Registration successful! Please log in.");
+        router.push("/login");
+      }
     } catch (error: any) {
       const msg = error.response?.data?.message || error.message || "Registration failed";
       toast.error(msg);
@@ -142,42 +150,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const verifyEmail = async (data: { email: string; otp: string }) => {
-    try {
-      await authService.verifyEmail(data);
-      toast.success("Email verified successfully! Please login.");
-      router.push("/login");
-    } catch (error: any) {
-      const msg = error.response?.data?.message || error.message || "Email verification failed";
-      toast.error(msg);
-      throw error;
-    }
-  };
-
-  const forgetPassword = async (email: string) => {
-    try {
-      await authService.forgetPassword(email);
-      toast.success("Password reset OTP sent to your email!");
-      router.push(`/reset-password?email=${encodeURIComponent(email)}`);
-    } catch (error: any) {
-      const msg = error.response?.data?.message || error.message || "Failed to send reset email";
-      toast.error(msg);
-      throw error;
-    }
-  };
-
-  const resetPassword = async (data: { email: string; otp: string; newPassword: string }) => {
-    try {
-      await authService.resetPassword(data);
-      toast.success("Password reset successfully! Please login.");
-      router.push("/login");
-    } catch (error: any) {
-      const msg = error.response?.data?.message || error.message || "Failed to reset password";
-      toast.error(msg);
-      throw error;
-    }
-  };
-
   return (
     <AuthContext.Provider
       value={{
@@ -187,9 +159,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         register,
         logout,
         changePassword,
-        verifyEmail,
-        forgetPassword,
-        resetPassword,
         refreshUser,
       }}
     >

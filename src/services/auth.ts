@@ -48,33 +48,4 @@ export const authService = {
     const response = await api.post("/auth/change-password", data);
     return response.data;
   },
-
-  verifyEmail: async (data: { email: string; otp: string }) => {
-    const response = await api.post("/auth/verify-email", data);
-    return response.data;
-  },
-
-  forgetPassword: async (email: string) => {
-    const response = await api.post("/auth/forget-password", { email });
-    return response.data;
-  },
-
-  resetPassword: async (data: { email: string; otp: string; newPassword: string }) => {
-    const response = await api.post("/auth/reset-password", data);
-    return response.data;
-  },
-
-  getGoogleLoginUrl: () => {
-    const isProd = typeof window !== "undefined" 
-      ? window.location.hostname !== "localhost"
-      : process.env.NODE_ENV === "production";
-    
-    const fallbackURL = isProd 
-      ? "https://tutor-booking-backend.vercel.app/api/v1" 
-      : "http://localhost:5000/api/v1";
-
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || fallbackURL;
-    const redirectPath = encodeURIComponent("/dashboard");
-    return `${apiUrl}/auth/login/google?redirect=${redirectPath}`;
-  },
 };
