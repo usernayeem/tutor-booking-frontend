@@ -29,13 +29,13 @@ export default function Features() {
   ];
 
   return (
-    <section className="bg-gray-50 py-16 md:py-24">
+    <section className="bg-muted/50 py-16 md:py-24">
       <div className="container mx-auto px-4 md:px-6">
         <div className="text-center mb-16">
-          <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+          <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
             Why Choose TutorBooking?
           </h2>
-          <p className="mt-4 text-lg text-gray-600">
+          <p className="mt-4 text-lg text-muted-foreground">
             We provide everything you need to achieve your academic goals.
           </p>
         </div>
@@ -44,13 +44,13 @@ export default function Features() {
           {features.map((feature, index) => (
             <div
               key={index}
-              className="group rounded-2xl bg-white p-8 shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg"
+              className="group rounded-xl bg-card border border-border p-8 shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg"
             >
               <div className={`mb-6 inline-flex h-12 w-12 items-center justify-center rounded-xl ${feature.color}`}>
                 <feature.icon className="h-6 w-6" />
               </div>
-              <h3 className="mb-3 text-xl font-semibold text-gray-900">{feature.title}</h3>
-              <p className="text-gray-600 leading-relaxed">{feature.description}</p>
+              <h3 className="mb-3 text-xl font-semibold text-foreground">{feature.title}</h3>
+              <p className="text-muted-foreground leading-relaxed">{feature.description}</p>
             </div>
           ))}
         </div>

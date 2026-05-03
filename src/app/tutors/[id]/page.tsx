@@ -22,12 +22,12 @@ export default function TutorProfilePage({ params }: { params: Promise<{ id: str
 
   useEffect(() => {
     const fetchTutor = async () => {
-      const isProd = typeof window !== "undefined" 
+      const isProd = typeof window !== "undefined"
         ? window.location.hostname !== "localhost"
         : process.env.NODE_ENV === "production";
-      
-      const fallbackURL = isProd 
-        ? "https://tutor-booking-backend.vercel.app/api/v1" 
+
+      const fallbackURL = isProd
+        ? "https://tutor-booking-backend.vercel.app/api/v1"
         : "http://localhost:5000/api/v1";
 
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || fallbackURL;
@@ -63,7 +63,7 @@ export default function TutorProfilePage({ params }: { params: Promise<{ id: str
       toast.error("Please select an available time slot");
       return;
     }
-    
+
     setIsBooking(true);
     try {
       const res = await api.post("/sessions", {
@@ -128,7 +128,7 @@ export default function TutorProfilePage({ params }: { params: Promise<{ id: str
               />
               <div className="absolute bottom-2 right-2 bg-green-500 w-5 h-5 rounded-full border-4 border-white" title="Online now"></div>
             </div>
-            
+
             <div className="flex-1 text-center md:text-left">
               <div className="inline-flex items-center gap-1.5 bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-sm font-semibold mb-3">
                 <CheckCircle2 className="h-4 w-4" />
@@ -136,7 +136,7 @@ export default function TutorProfilePage({ params }: { params: Promise<{ id: str
               </div>
               <h1 className="text-3xl font-bold text-gray-900 mb-2">{tutorName}</h1>
               <p className="text-xl text-gray-600 mb-4">{tutorSubject}</p>
-              
+
               <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 md:gap-6 text-sm text-gray-600">
                 <div className="flex items-center gap-1.5">
                   <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
@@ -155,7 +155,7 @@ export default function TutorProfilePage({ params }: { params: Promise<{ id: str
           <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-gray-100">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">About Me</h2>
             <p className="text-gray-600 leading-relaxed text-lg">{tutorAbout}</p>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8 pt-8 border-t border-gray-100">
               <div>
                 <h3 className="font-semibold text-gray-900 flex items-center gap-2 mb-3">
@@ -195,7 +195,7 @@ export default function TutorProfilePage({ params }: { params: Promise<{ id: str
                         <span className="font-semibold text-gray-800">{review.student?.user?.name || "Student"}</span>
                       </div>
                       <div className="flex items-center gap-1">
-                        {[1,2,3,4,5].map((s) => (
+                        {[1, 2, 3, 4, 5].map((s) => (
                           <Star key={s} className={`w-4 h-4 ${s <= review.rating ? "fill-yellow-400 text-yellow-400" : "text-gray-200"}`} />
                         ))}
                       </div>
@@ -242,15 +242,15 @@ export default function TutorProfilePage({ params }: { params: Promise<{ id: str
               </div>
             </div>
 
-            <Button 
-              size="lg" 
+            <Button
+              size="lg"
               className="w-full h-14 text-lg bg-blue-600 hover:bg-blue-700 shadow-md"
               onClick={handleBooking}
               disabled={isBooking}
             >
               {isBooking ? "Confirming..." : "Book Session"}
             </Button>
-            
+
             <p className="text-center text-sm text-gray-500 mt-4">
               Usually responds within 2 hours
             </p>

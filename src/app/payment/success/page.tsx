@@ -18,13 +18,13 @@ function PaymentSuccessContent() {
   useEffect(() => {
     const verifyPayment = async () => {
       if (!sessionId || verificationStarted.current) return;
-      
+
       verificationStarted.current = true;
       try {
         const response = await api.post("/payment/verify-payment", {
           stripeSessionId: sessionId
         });
-        
+
         if (response.data?.success) {
           setIsSuccess(true);
         } else {
@@ -47,10 +47,10 @@ function PaymentSuccessContent() {
 
   useEffect(() => {
     if (!isVerifying && isSuccess) {
-        const timer = setTimeout(() => {
-            router.push("/dashboard/student");
-        }, 5000);
-        return () => clearTimeout(timer);
+      const timer = setTimeout(() => {
+        router.push("/dashboard/student");
+      }, 5000);
+      return () => clearTimeout(timer);
     }
   }, [isVerifying, isSuccess, router]);
 
@@ -72,15 +72,15 @@ function PaymentSuccessContent() {
             </div>
           )}
         </div>
-        
+
         <div className="space-y-2">
           <h1 className="text-3xl font-bold text-gray-900">
             {isVerifying ? "Verifying Payment..." : isSuccess ? "Payment Successful!" : "Verification Failed"}
           </h1>
           <p className="text-gray-500">
-            {isVerifying 
-              ? "We are confirming your payment with Stripe. Please wait a moment." 
-              : isSuccess 
+            {isVerifying
+              ? "We are confirming your payment with Stripe. Please wait a moment."
+              : isSuccess
                 ? "Thank you for your payment. Your session has been successfully booked and confirmed."
                 : "We couldn't verify your payment. If you've been charged, please contact our support team."
             }
@@ -90,9 +90,8 @@ function PaymentSuccessContent() {
         <div className="pt-6">
           <Link
             href="/dashboard/student"
-            className={`inline-flex items-center justify-center w-full px-6 py-3 text-base font-medium text-white rounded-lg transition-all shadow-lg gap-2 ${
-              isSuccess ? "bg-green-600 hover:bg-green-700 shadow-green-100" : "bg-blue-600 hover:bg-blue-700 shadow-blue-100"
-            }`}
+            className={`inline-flex items-center justify-center w-full px-6 py-3 text-base font-medium text-white rounded-lg transition-all shadow-lg gap-2 ${isSuccess ? "bg-green-600 hover:bg-green-700 shadow-green-100" : "bg-blue-600 hover:bg-blue-700 shadow-blue-100"
+              }`}
           >
             {isSuccess ? "Go to My Dashboard" : "Back to Dashboard"}
             <ArrowRight className="w-5 h-5" />
@@ -111,9 +110,9 @@ function PaymentSuccessContent() {
 export default function PaymentSuccessPage() {
   return (
     <Suspense fallback={
-        <div className="min-h-[80vh] flex items-center justify-center">
-            <Loader2 className="w-12 h-12 text-blue-600 animate-spin" />
-        </div>
+      <div className="min-h-[80vh] flex items-center justify-center">
+        <Loader2 className="w-12 h-12 text-blue-600 animate-spin" />
+      </div>
     }>
       <PaymentSuccessContent />
     </Suspense>

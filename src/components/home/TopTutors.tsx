@@ -32,14 +32,14 @@ export default async function TopTutors() {
   }
 
   return (
-    <section className="bg-white py-16 md:py-24">
+    <section className="bg-background py-16 md:py-24">
       <div className="container mx-auto px-4 md:px-6">
         <div className="flex flex-col items-center justify-between gap-4 md:flex-row mb-12">
           <div>
-            <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+            <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
               Learn from the Best
             </h2>
-            <p className="mt-2 text-lg text-gray-600">
+            <p className="mt-2 text-lg text-muted-foreground">
               Browse our highest-rated tutors across various subjects.
             </p>
           </div>
@@ -53,16 +53,14 @@ export default async function TopTutors() {
         </div>
 
         {tutors.length > 0 ? (
-          <div className="flex flex-wrap justify-center gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {tutors.map((tutor: any) => (
-              <div key={tutor.id} className="w-full max-w-[340px]">
-                <TutorCard tutor={tutor} />
-              </div>
+              <TutorCard key={tutor.id} tutor={tutor} />
             ))}
           </div>
         ) : (
-          <div className="text-center py-16 text-gray-500">
-            <BookOpen className="mx-auto h-12 w-12 text-gray-300 mb-3" />
+          <div className="text-center py-16 text-muted-foreground">
+            <BookOpen className="mx-auto h-12 w-12 text-muted-foreground/30 mb-3" />
             <p className="font-medium">No tutors available yet.</p>
             <p className="text-sm mt-1">Check back soon — tutors are being added!</p>
           </div>

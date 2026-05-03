@@ -52,21 +52,21 @@ export default async function Subjects() {
   const displaySubjects = subjects.slice(0, 8);
 
   return (
-    <section className="bg-gray-50 py-16 md:py-24">
+    <section className="bg-muted/50 py-16 md:py-24">
       <div className="container mx-auto px-4 md:px-6">
         {/* Header */}
         <div className="flex flex-col items-center justify-between gap-4 md:flex-row mb-12">
           <div>
-            <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+            <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
               Browse by Subject
             </h2>
-            <p className="mt-2 text-lg text-gray-600">
+            <p className="mt-2 text-lg text-muted-foreground">
               Find expert tutors in {subjects.length} subject{subjects.length !== 1 ? "s" : ""} and counting.
             </p>
           </div>
           <Link
             href="/subjects"
-            className="hidden md:inline-flex items-center gap-1.5 font-medium text-blue-600 hover:text-blue-700 transition-colors"
+            className="hidden md:inline-flex items-center gap-1.5 font-medium text-primary hover:text-primary/80 transition-colors"
           >
             Explore all subjects
             <ArrowRight className="h-4 w-4" />
@@ -74,7 +74,7 @@ export default async function Subjects() {
         </div>
 
         {/* Premium Subject Grid */}
-        <div className="flex flex-wrap justify-center gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {displaySubjects.map((subject: any, index: number) => {
             const mappedTheme = iconMap[subject.name as string];
             const fallbackTheme = fallbackPalette[index % fallbackPalette.length];
@@ -83,33 +83,30 @@ export default async function Subjects() {
             const iconBg = mappedTheme?.bg || fallbackTheme.bg;
 
             return (
-              <div key={subject.id} className="w-full max-w-[340px] flex">
-                <Link
+              <Link
                   href={`/tutors?subjectId=${subject.id}`}
-                  className="group flex flex-col w-full justify-center rounded-2xl bg-white p-6 shadow-sm border border-gray-100 transition-all hover:shadow-xl hover:-translate-y-1 relative overflow-hidden"
+                  className="group flex flex-col w-full justify-center rounded-xl bg-card border border-border p-6 shadow-sm transition-all hover:shadow-lg hover:-translate-y-1 relative overflow-hidden"
                 >
-                  {/* Subtle hover gradient background */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-transparent to-gray-50 opacity-0 transition-opacity group-hover:opacity-100" />
+                  <div className="absolute inset-0 bg-gradient-to-br from-transparent to-primary/5 opacity-0 transition-opacity group-hover:opacity-100" />
                   
                   <div className="relative z-10 flex items-start justify-between">
                     <div className={`mb-4 flex h-12 w-12 items-center justify-center rounded-xl ${iconBg} transition-transform duration-300 group-hover:scale-110`}>
                       <IconComponent className={`h-6 w-6 ${iconColor}`} />
                     </div>
-                    <div className="flex h-8 w-8 items-center justify-center rounded-full border border-gray-100 bg-white shadow-sm transition-colors group-hover:border-blue-200 group-hover:bg-blue-50 text-gray-400 group-hover:text-blue-600">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-card shadow-sm transition-colors group-hover:border-primary/30 group-hover:bg-primary/10 text-muted-foreground group-hover:text-primary">
                       <ArrowRight className="h-4 w-4" />
                     </div>
                   </div>
                   
-                  <h3 className="relative z-10 text-lg font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
+                  <h3 className="relative z-10 text-lg font-bold text-foreground group-hover:text-primary transition-colors">
                     {subject.name}
                   </h3>
                   {subject.description && (
-                    <p className="relative z-10 mt-2 text-sm text-gray-500 line-clamp-2">
+                    <p className="relative z-10 mt-2 text-sm text-muted-foreground line-clamp-2">
                       {subject.description}
                     </p>
                   )}
-                </Link>
-              </div>
+              </Link>
             );
           })}
         </div>
@@ -117,7 +114,7 @@ export default async function Subjects() {
         <div className="mt-10 flex justify-center md:hidden">
           <Link
             href="/subjects"
-            className="inline-flex h-12 w-full max-w-sm items-center justify-center gap-2 rounded-xl border-2 border-gray-200 font-semibold text-gray-700 transition-colors hover:border-gray-300 hover:bg-gray-50"
+            className="inline-flex h-12 w-full max-w-sm items-center justify-center gap-2 rounded-xl border border-border font-semibold text-foreground transition-colors hover:bg-muted"
           >
             Explore all subjects <ArrowRight className="h-4 w-4" />
           </Link>

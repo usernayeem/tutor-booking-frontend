@@ -51,13 +51,13 @@ export default async function Testimonials() {
   }
 
   return (
-    <section className="bg-blue-50 py-16 md:py-24">
+    <section className="bg-primary/5 py-16 md:py-24">
       <div className="container mx-auto px-4 md:px-6">
         <div className="text-center mb-16">
-          <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+          <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
             Loved by Students Worldwide
           </h2>
-          <p className="mt-4 text-lg text-gray-600">
+          <p className="mt-4 text-lg text-muted-foreground">
             Here's what our students are saying about their tutors.
           </p>
         </div>
@@ -73,10 +73,10 @@ export default async function Testimonials() {
               return (
                 <div
                   key={item.id}
-                  className="relative flex flex-col rounded-2xl bg-white p-8 shadow-sm hover:shadow-md transition-shadow"
+                  className="relative flex flex-col rounded-xl bg-card border border-border p-8 shadow-sm hover:shadow-md transition-shadow"
                 >
                   {/* Quote icon */}
-                  <Quote className="absolute top-6 right-6 h-8 w-8 text-blue-100 fill-blue-100" />
+                  <Quote className="absolute top-6 right-6 h-8 w-8 text-primary/20 fill-primary/20" />
 
                   {/* Star rating */}
                   <div className="flex gap-1 mb-6 text-yellow-400">
@@ -90,17 +90,17 @@ export default async function Testimonials() {
                     ))}
                   </div>
 
-                  <p className="mb-6 text-gray-700 italic text-base leading-relaxed flex-1">
+                  <p className="mb-6 text-foreground/80 italic text-base leading-relaxed flex-1">
                     &ldquo;{content}&rdquo;
                   </p>
 
-                  <div className="flex items-center gap-4 mt-auto border-t pt-4">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 text-white font-bold text-lg shrink-0">
+                  <div className="flex items-center gap-4 mt-auto border-t border-border pt-4">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-primary to-blue-600 text-primary-foreground font-bold text-lg shrink-0">
                       {authorName.charAt(0).toUpperCase()}
                     </div>
                     <div>
-                      <h4 className="font-semibold text-gray-900">{authorName}</h4>
-                      <p className="text-sm text-gray-500">{authorRole}</p>
+                      <h4 className="font-semibold text-foreground">{authorName}</h4>
+                      <p className="text-sm text-muted-foreground">{authorRole}</p>
                     </div>
                   </div>
                 </div>
@@ -108,10 +108,10 @@ export default async function Testimonials() {
             })}
           </div>
         ) : (
-          <div className="text-center py-12 bg-white rounded-2xl shadow-sm border border-gray-100 max-w-2xl mx-auto">
-            <MessageSquare className="mx-auto h-12 w-12 text-gray-300 mb-3" />
-            <p className="font-medium text-gray-900 text-lg">No reviews yet.</p>
-            <p className="text-sm text-gray-500 mt-1">Check back later to see what students think about our tutors!</p>
+          <div className="text-center py-12 bg-card rounded-xl shadow-sm border border-border max-w-2xl mx-auto">
+            <MessageSquare className="mx-auto h-12 w-12 text-muted-foreground/30 mb-3" />
+            <p className="font-medium text-foreground text-lg">No reviews yet.</p>
+            <p className="text-sm text-muted-foreground mt-1">Check back later to see what students think about our tutors!</p>
           </div>
         )}
       </div>

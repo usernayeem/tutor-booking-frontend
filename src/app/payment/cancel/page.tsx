@@ -12,7 +12,7 @@ export default function PaymentCancelPage() {
             <XCircle className="w-16 h-16 text-red-600" />
           </div>
         </div>
-        
+
         <div className="space-y-2">
           <h1 className="text-3xl font-bold text-gray-900">Payment Cancelled</h1>
           <p className="text-gray-500">

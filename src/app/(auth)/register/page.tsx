@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { BookOpen, Eye, EyeOff } from "lucide-react";
+import { BookOpen, Eye, EyeOff, Loader2, User, Mail, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -13,45 +13,51 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
-import { authService } from "@/services/auth";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+
+const registerSchema = z.object({
+  name: z.string().min(2, "Name must be at least 2 characters."),
+  email: z.string().email("Please enter a valid email address."),
+  password: z.string().min(6, "Password must be at least 6 characters."),
+  confirmPassword: z.string(),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords do not match",
+  path: ["confirmPassword"],
+});
 
 export default function RegisterPage() {
   const { register } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
-
   const [showPassword, setShowPassword] = useState(false);
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
+
+  const form = useForm<z.infer<typeof registerSchema>>({
+    resolver: zodResolver(registerSchema),
+    defaultValues: {
+      name: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+    },
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (formData.password.length < 6) {
-      toast.error("Password must be at least 6 characters.");
-      return;
-    }
-    if (formData.password !== formData.confirmPassword) {
-      toast.error("Passwords do not match");
-      return;
-    }
-
+  const onSubmit = async (values: z.infer<typeof registerSchema>) => {
     setIsLoading(true);
     try {
       await register({
-        name: formData.name,
-        email: formData.email,
-        password: formData.password,
+        name: values.name,
+        email: values.email,
+        password: values.password,
       });
     } catch (error) {
       // Error handled by context
@@ -60,16 +66,12 @@ export default function RegisterPage() {
     }
   };
 
-
-
-
-
   return (
-    <div className="flex min-h-[calc(100vh-140px)] items-center justify-center p-4 py-12">
-      <Card className="w-full max-w-md shadow-lg">
+    <div className="flex min-h-[calc(100vh-160px)] items-center justify-center p-4 py-8">
+      <Card className="w-full max-w-md shadow-2xl border-primary/10 overflow-hidden bg-card/50 backdrop-blur-sm">
         <CardHeader className="space-y-2 text-center">
           <div className="flex justify-center mb-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-600 text-white shadow-md">
+            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-md">
               <BookOpen className="h-6 w-6" />
             </div>
           </div>
@@ -80,103 +82,150 @@ export default function RegisterPage() {
         </CardHeader>
 
         {/* Info note */}
-        <div className="mx-6 mb-2 rounded-lg border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-700">
+        <div className="mx-6 mb-2 rounded-lg border border-primary/20 bg-primary/10 px-4 py-3 text-sm text-primary">
           <strong>Note:</strong> This form registers you as a <strong>Student</strong>. Tutor accounts are created by administrators.
         </div>
 
-        <form onSubmit={handleSubmit}>
-          <CardContent className="space-y-4 pt-4">
-            {/* Full Name */}
-            <div className="space-y-2">
-              <Label htmlFor="name">Full Name</Label>
-              <Input
-                id="name"
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)}>
+            <CardContent className="space-y-4 pt-2">
+              <FormField
+                control={form.control}
                 name="name"
-                placeholder="John Doe"
-                required
-                value={formData.name}
-                onChange={handleChange}
+                render={({ field }) => (
+                  <FormItem className="space-y-1">
+                    <FormLabel className="text-sm font-semibold tracking-wide">Full Name</FormLabel>
+                    <FormControl>
+                      <div className="relative group flex items-center rounded-lg border border-input bg-background/50 focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/20 transition-all duration-300">
+                        <div className="flex h-10 w-11 items-center justify-center border-r border-input/50 text-muted-foreground group-focus-within:text-primary transition-colors">
+                          <User className="h-4 w-4" />
+                        </div>
+                        <Input 
+                          placeholder="John Doe" 
+                          className="border-0 bg-transparent h-10 pl-3 focus-visible:ring-0 focus-visible:border-0"
+                          {...field} 
+                        />
+                      </div>
+                    </FormControl>
+                    <FormMessage className="text-xs" />
+                  </FormItem>
+                )}
               />
-            </div>
 
-            {/* Email */}
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
+              <FormField
+                control={form.control}
                 name="email"
-                type="email"
-                placeholder="m@example.com"
-                required
-                value={formData.email}
-                onChange={handleChange}
+                render={({ field }) => (
+                  <FormItem className="space-y-1">
+                    <FormLabel className="text-sm font-semibold tracking-wide">Email</FormLabel>
+                    <FormControl>
+                      <div className="relative group flex items-center rounded-lg border border-input bg-background/50 focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/20 transition-all duration-300">
+                        <div className="flex h-10 w-11 items-center justify-center border-r border-input/50 text-muted-foreground group-focus-within:text-primary transition-colors">
+                          <Mail className="h-4 w-4" />
+                        </div>
+                        <Input 
+                          type="email" 
+                          placeholder="m@example.com" 
+                          className="border-0 bg-transparent h-10 pl-3 focus-visible:ring-0 focus-visible:border-0"
+                          {...field} 
+                        />
+                      </div>
+                    </FormControl>
+                    <FormMessage className="text-xs" />
+                  </FormItem>
+                )}
               />
-            </div>
 
-            {/* Password */}
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <div className="relative">
-                <Input
-                  id="password"
-                  name="password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Min. 6 characters"
-                  required
-                  minLength={6}
-                  className="pr-10"
-                  value={formData.password}
-                  onChange={handleChange}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                >
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </button>
-              </div>
-            </div>
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem className="space-y-1">
+                    <FormLabel className="text-sm font-semibold tracking-wide">Password</FormLabel>
+                    <FormControl>
+                      <div className="relative group flex items-center rounded-lg border border-input bg-background/50 focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/20 transition-all duration-300">
+                        <div className="flex h-10 w-11 items-center justify-center border-r border-input/50 text-muted-foreground group-focus-within:text-primary transition-colors">
+                          <Lock className="h-4 w-4" />
+                        </div>
+                        <Input
+                          type={showPassword ? "text" : "password"}
+                          placeholder="Min. 6 characters"
+                          className="border-0 bg-transparent h-10 pl-3 pr-10 focus-visible:ring-0 focus-visible:border-0"
+                          {...field}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-1 rounded-md hover:bg-muted"
+                        >
+                          {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                      </div>
+                    </FormControl>
+                    <FormMessage className="text-xs" />
+                  </FormItem>
+                )}
+              />
 
-            {/* Confirm Password */}
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm Password</Label>
-              <Input
-                id="confirmPassword"
+              <FormField
+                control={form.control}
                 name="confirmPassword"
-                type={showPassword ? "text" : "password"}
-                placeholder="Repeat your password"
-                required
-                minLength={6}
-                value={formData.confirmPassword}
-                onChange={handleChange}
+                render={({ field }) => (
+                  <FormItem className="space-y-1">
+                    <FormLabel className="text-sm font-semibold tracking-wide">Confirm Password</FormLabel>
+                    <FormControl>
+                      <div className="relative group flex items-center rounded-lg border border-input bg-background/50 focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/20 transition-all duration-300">
+                        <div className="flex h-10 w-11 items-center justify-center border-r border-input/50 text-muted-foreground group-focus-within:text-primary transition-colors">
+                          <Lock className="h-4 w-4" />
+                        </div>
+                        <Input
+                          type={showPassword ? "text" : "password"}
+                          placeholder="Repeat your password"
+                          className="border-0 bg-transparent h-10 pl-3 pr-10 focus-visible:ring-0 focus-visible:border-0"
+                          {...field}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-1 rounded-md hover:bg-muted"
+                        >
+                          {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                      </div>
+                    </FormControl>
+                    <FormMessage className="text-xs" />
+                  </FormItem>
+                )}
               />
-            </div>
-          </CardContent>
 
-          <CardFooter className="flex flex-col space-y-4">
-            {/* Register button */}
-            <Button
-              type="submit"
-              id="register-submit-btn"
-              className="w-full bg-blue-600 hover:bg-blue-700"
-              disabled={isLoading}
-            >
-              {isLoading ? "Creating account..." : "Create Student Account"}
-            </Button>
+              <Button
+                type="submit"
+                id="register-submit-btn"
+                className="w-full h-10 text-sm font-semibold shadow-md hover:shadow-lg transition-all"
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Creating account...
+                  </>
+                ) : (
+                  "Create Student Account"
+                )}
+              </Button>
+            </CardContent>
 
+            <CardFooter className="flex flex-col py-4 bg-muted/30 border-t border-input/20">
 
-
-
-
-            <div className="text-center text-sm text-gray-500">
-              Already have an account?{" "}
-              <Link href="/login" className="text-blue-600 hover:underline font-medium">
-                Log in
-              </Link>
-            </div>
-          </CardFooter>
-        </form>
+              <div className="text-center text-sm text-muted-foreground">
+                Already have an account?{" "}
+                <Link href="/login" className="text-primary hover:underline font-medium">
+                  Log in
+                </Link>
+              </div>
+            </CardFooter>
+          </form>
+        </Form>
       </Card>
     </div>
   );

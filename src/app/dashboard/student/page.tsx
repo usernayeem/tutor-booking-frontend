@@ -206,19 +206,19 @@ export default function StudentDashboard() {
 
   const getStatusBadge = (status: string) => {
     const map: Record<string, string> = {
-      PENDING: "bg-yellow-100 text-yellow-700",
-      SCHEDULED: "bg-blue-100 text-blue-700",
-      CONFIRMED: "bg-green-100 text-green-700",
-      COMPLETED: "bg-gray-100 text-gray-700",
-      CANCELED: "bg-red-100 text-red-700",
+      PENDING: "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400",
+      SCHEDULED: "bg-primary/10 text-primary",
+      CONFIRMED: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
+      COMPLETED: "bg-muted text-muted-foreground",
+      CANCELED: "bg-destructive/10 text-destructive",
     };
-    return map[status] || "bg-gray-100 text-gray-600";
+    return map[status] || "bg-muted text-muted-foreground";
   };
 
   const getPaymentBadge = (status: string) => {
     return status === "PAID"
-      ? "bg-green-100 text-green-700"
-      : "bg-yellow-100 text-yellow-700";
+      ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+      : "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400";
   };
 
   const upcomingSessions = sessions.filter(
@@ -235,9 +235,9 @@ export default function StudentDashboard() {
   )[0];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="bg-white px-6 py-4">
+      <div className="bg-card px-6 py-4 border-b border-border">
         <div className="max-w-7xl mx-auto">
           <DashboardHeader 
             title="Student Portal"
@@ -264,41 +264,41 @@ export default function StudentDashboard() {
                 title="Upcoming Sessions"
                 value={isLoading ? "—" : upcomingSessions.length}
                 description="Scheduled ahead"
-                icon={<Calendar className="w-4 h-4 text-blue-500" />}
+                icon={<Calendar className="w-4 h-4 text-primary" />}
                 theme="default"
               />
               <StatCard
                 title="Completed Sessions"
                 value={isLoading ? "—" : completedSessions.length}
                 description="All time"
-                icon={<CheckCircle2 className="w-4 h-4 text-green-500" />}
+                icon={<CheckCircle2 className="w-4 h-4 text-emerald-500" />}
                 theme="default"
               />
               <StatCard
                 title="Tutors Booked"
                 value={isLoading ? "—" : uniqueTutors.size}
                 description="Unique tutors"
-                icon={<User className="w-4 h-4 text-purple-500" />}
+                icon={<User className="w-4 h-4 text-primary" />}
                 theme="default"
               />
             </div>
 
-            <Card className="bg-white border-gray-200 shadow-sm">
+            <Card className="bg-card border-border shadow-sm">
               <CardHeader>
-                <CardTitle className="text-gray-800">Next Upcoming Session</CardTitle>
+                <CardTitle className="text-foreground">Next Upcoming Session</CardTitle>
               </CardHeader>
               <CardContent>
                 {isLoading ? (
-                  <p className="text-gray-400 text-center py-4">Loading…</p>
+                  <p className="text-muted-foreground text-center py-4">Loading…</p>
                 ) : nextSession ? (
                   <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                     <div className="flex items-center gap-4">
-                      <div className="w-14 h-14 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-lg uppercase">
+                      <div className="w-14 h-14 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-lg uppercase">
                         {nextSession.tutor?.user?.name?.substring(0, 2) || "TU"}
                       </div>
                       <div>
-                        <p className="font-bold text-gray-900 text-lg">{nextSession.tutor?.user?.name || "Tutor"}</p>
-                        <div className="flex items-center gap-4 text-sm text-gray-500 mt-1">
+                        <p className="font-bold text-foreground text-lg">{nextSession.tutor?.user?.name || "Tutor"}</p>
+                        <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
                           <span className="flex items-center gap-1">
                             <Calendar className="w-4 h-4" />
                             {nextSession.schedule?.startTime
@@ -322,7 +322,7 @@ export default function StudentDashboard() {
                     </Button>
                   </div>
                 ) : (
-                  <p className="text-gray-500 text-center py-4">No upcoming sessions. <a href="/tutors" className="text-blue-600 underline">Browse tutors</a> to book one.</p>
+                  <p className="text-muted-foreground text-center py-4">No upcoming sessions. <a href="/tutors" className="text-primary underline">Browse tutors</a> to book one.</p>
                 )}
               </CardContent>
             </Card>
@@ -330,23 +330,23 @@ export default function StudentDashboard() {
 
           {/* ── My Bookings ── */}
           <TabsContent value="bookings">
-            <Card className="bg-white border-gray-200 shadow-sm">
+            <Card className="bg-card border-border shadow-sm">
               <CardHeader>
                 <CardTitle>Session History</CardTitle>
                 <CardDescription>All your tutoring sessions — past and upcoming.</CardDescription>
               </CardHeader>
               <CardContent>
                 {isLoading ? (
-                  <div className="text-center py-8 text-gray-400">Loading sessions…</div>
+                  <div className="text-center py-8 text-muted-foreground">Loading sessions…</div>
                 ) : sessions.length === 0 ? (
-                  <div className="text-center py-8 text-gray-500">
-                    No bookings yet. <a href="/tutors" className="text-blue-600 underline">Find a tutor</a>.
+                  <div className="text-center py-8 text-muted-foreground">
+                    No bookings yet. <a href="/tutors" className="text-primary underline">Find a tutor</a>.
                   </div>
                 ) : (
-                  <div className="rounded-md border">
+                  <div className="rounded-md border border-border">
                     <Table>
                       <TableHeader>
-                        <TableRow>
+                        <TableRow className="hover:bg-transparent">
                           <TableHead>Tutor</TableHead>
                           <TableHead>Schedule</TableHead>
                           <TableHead>Status</TableHead>
@@ -356,9 +356,9 @@ export default function StudentDashboard() {
                       </TableHeader>
                       <TableBody>
                         {sessions.map((session) => (
-                          <TableRow key={session.id}>
-                            <TableCell className="font-medium">{session.tutor?.user?.name || "Tutor"}</TableCell>
-                            <TableCell className="text-sm text-gray-500">
+                          <TableRow key={session.id} className="hover:bg-muted/50 border-border">
+                            <TableCell className="font-medium text-foreground">{session.tutor?.user?.name || "Tutor"}</TableCell>
+                            <TableCell className="text-sm text-muted-foreground">
                               {session.schedule?.startTime
                                 ? format(new Date(session.schedule.startTime), "PPP, p")
                                 : "TBD"}
@@ -378,7 +378,7 @@ export default function StudentDashboard() {
                                 <Eye className="w-3.5 h-3.5" /> View
                               </Button>
                               {(session.status === "SCHEDULED" || session.status === "CONFIRMED") && session.paymentStatus === "UNPAID" && (
-                                <Button size="sm" onClick={() => handlePayment(session.id)} className="bg-green-600 hover:bg-green-700 gap-1">
+                                <Button size="sm" onClick={() => handlePayment(session.id)} className="bg-emerald-600 hover:bg-emerald-700 text-white gap-1">
                                   <CreditCard className="w-3.5 h-3.5" /> Pay
                                 </Button>
                               )}
@@ -400,23 +400,23 @@ export default function StudentDashboard() {
 
           {/* ── Payments ── */}
           <TabsContent value="payments">
-            <Card className="bg-white border-gray-200 shadow-sm">
+            <Card className="bg-card border-border shadow-sm">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <DollarSign className="w-5 h-5 text-green-600" /> Payment History
+                  <DollarSign className="w-5 h-5 text-emerald-600" /> Payment History
                 </CardTitle>
                 <CardDescription>All payments linked to your sessions.</CardDescription>
               </CardHeader>
               <CardContent>
                 {isPaymentsLoading ? (
-                  <div className="text-center py-8 text-gray-400">Loading payments…</div>
+                  <div className="text-center py-8 text-muted-foreground">Loading payments…</div>
                 ) : payments.length === 0 ? (
-                  <div className="text-center py-8 text-gray-500">No payment records found.</div>
+                  <div className="text-center py-8 text-muted-foreground">No payment records found.</div>
                 ) : (
-                  <div className="rounded-md border">
+                  <div className="rounded-md border border-border">
                     <Table>
                       <TableHeader>
-                        <TableRow>
+                        <TableRow className="hover:bg-transparent">
                           <TableHead>Transaction ID</TableHead>
                           <TableHead>Amount</TableHead>
                           <TableHead>Status</TableHead>
@@ -425,15 +425,15 @@ export default function StudentDashboard() {
                       </TableHeader>
                       <TableBody>
                         {payments.map((payment) => (
-                          <TableRow key={payment.id}>
-                            <TableCell className="font-mono text-xs text-gray-500">{payment.transactionId?.substring(0, 20)}…</TableCell>
-                            <TableCell className="font-semibold">${payment.amount?.toFixed(2) || "0.00"}</TableCell>
+                          <TableRow key={payment.id} className="hover:bg-muted/50 border-border">
+                            <TableCell className="font-mono text-xs text-muted-foreground">{payment.transactionId?.substring(0, 20)}…</TableCell>
+                            <TableCell className="font-semibold text-foreground">${payment.amount?.toFixed(2) || "0.00"}</TableCell>
                             <TableCell>
                               <span className={`px-2 py-0.5 text-xs rounded-full font-medium ${getPaymentBadge(payment.paymentStatus)}`}>
                                 {payment.paymentStatus}
                               </span>
                             </TableCell>
-                            <TableCell className="text-sm text-gray-500">
+                            <TableCell className="text-sm text-muted-foreground">
                               {payment.updatedAt ? format(new Date(payment.updatedAt), "PP") : "—"}
                             </TableCell>
                           </TableRow>
@@ -449,7 +449,7 @@ export default function StudentDashboard() {
           {/* ── Profile ── */}
           <TabsContent value="profile">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card className="bg-white border-gray-200 shadow-sm">
+              <Card className="bg-card border-border shadow-sm">
                 <CardHeader>
                   <CardTitle>Profile Settings</CardTitle>
                   <CardDescription>Update your personal information.</CardDescription>
@@ -464,10 +464,10 @@ export default function StudentDashboard() {
                           <img
                             src={(profilePhotoPreview || user?.Student?.profilePhoto) as string}
                             alt="Profile"
-                            className="w-16 h-16 rounded-full object-cover border-2 border-blue-200 shadow"
+                            className="w-16 h-16 rounded-full object-cover border-2 border-primary/20 shadow-sm"
                           />
                         ) : (
-                          <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center border-2 border-dashed border-blue-300 text-blue-500 font-bold text-xl uppercase">
+                          <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center border-2 border-dashed border-primary/30 text-primary font-bold text-xl uppercase">
                             {user?.name?.substring(0, 2) || "ST"}
                           </div>
                         )}
@@ -494,20 +494,20 @@ export default function StudentDashboard() {
                             {profilePhotoFile ? "Change Photo" : "Upload Photo"}
                           </Button>
                           {profilePhotoFile && (
-                            <p className="text-xs text-green-600 mt-1 font-medium">{profilePhotoFile.name}</p>
+                            <p className="text-xs text-emerald-600 mt-1 font-medium">{profilePhotoFile.name}</p>
                           )}
-                          <p className="text-xs text-gray-400 mt-1">PNG, JPG or WEBP — max 2MB</p>
+                          <p className="text-xs text-muted-foreground mt-1">PNG, JPG or WEBP — max 2MB</p>
                         </div>
                       </div>
                     </div>
                     <div className="space-y-2">
                       <Label>Full Name</Label>
-                      <Input value={user?.name || ""} disabled className="bg-gray-50" />
+                      <Input value={user?.name || ""} disabled className="bg-muted" />
                     </div>
                     <div className="space-y-2">
                       <Label>Email</Label>
-                      <Input type="email" value={user?.email || ""} disabled className="bg-gray-50" />
-                      <p className="text-xs text-gray-400">Name and email cannot be changed here.</p>
+                      <Input type="email" value={user?.email || ""} disabled className="bg-muted" />
+                      <p className="text-xs text-muted-foreground">Name and email cannot be changed here.</p>
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="contactNumber">Contact Number</Label>
@@ -517,27 +517,27 @@ export default function StudentDashboard() {
                       <Label htmlFor="address">Address</Label>
                       <Input id="address" value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Your city, country" />
                     </div>
-                    <Button type="submit" disabled={isSubmitting} className="bg-blue-600 hover:bg-blue-700">
+                    <Button type="submit" disabled={isSubmitting}>
                       {isSubmitting ? "Saving…" : "Save Changes"}
                     </Button>
                   </form>
                 </CardContent>
               </Card>
 
-              <Card className="bg-white border-red-100 shadow-sm">
+              <Card className="bg-card border-destructive/20 shadow-sm">
                 <CardHeader>
-                  <CardTitle className="text-red-600 flex items-center gap-2">
+                  <CardTitle className="text-destructive flex items-center gap-2">
                     <AlertTriangle className="w-5 h-5" /> Danger Zone
                   </CardTitle>
                   <CardDescription>Irreversible and destructive actions.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="p-4 border border-red-200 rounded-lg bg-red-50">
-                    <p className="font-medium text-gray-800 mb-1">Delete Account</p>
-                    <p className="text-sm text-gray-500 mb-4">
+                  <div className="p-4 border border-destructive/20 rounded-lg bg-destructive/5">
+                    <p className="font-medium text-foreground mb-1">Delete Account</p>
+                    <p className="text-sm text-muted-foreground mb-4">
                       Permanently remove your account and all associated data from the platform. This action cannot be undone.
                     </p>
-                    <Button variant="outline" onClick={handleDeleteAccount} className="border-red-300 text-red-600 hover:bg-red-600 hover:text-white gap-2">
+                    <Button variant="outline" onClick={handleDeleteAccount} className="border-destructive/30 text-destructive hover:bg-destructive hover:text-destructive-foreground gap-2">
                       <Trash2 className="w-4 h-4" /> Delete My Account
                     </Button>
                   </div>
@@ -550,52 +550,52 @@ export default function StudentDashboard() {
 
       {/* ── Session Detail Modal ── */}
       {isSessionDetailOpen && selectedSession && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-6">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-card border border-border rounded-2xl shadow-2xl w-full max-w-lg p-6">
             <div className="flex justify-between items-start mb-6">
               <div>
-                <h3 className="text-xl font-bold text-gray-900">Session Details</h3>
-                <p className="text-sm text-gray-500 mt-1 font-mono">{selectedSession.id}</p>
+                <h3 className="text-xl font-bold text-foreground">Session Details</h3>
+                <p className="text-sm text-muted-foreground mt-1 font-mono">{selectedSession.id}</p>
               </div>
               <Button variant="ghost" size="sm" onClick={() => setIsSessionDetailOpen(false)}>✕</Button>
             </div>
             <div className="space-y-3 text-sm">
-              <div className="flex justify-between py-2 border-b border-gray-100">
-                <span className="text-gray-500">Tutor</span>
-                <span className="font-medium">{selectedSession.tutor?.user?.name || "—"}</span>
+              <div className="flex justify-between py-2 border-b border-border">
+                <span className="text-muted-foreground">Tutor</span>
+                <span className="font-medium text-foreground">{selectedSession.tutor?.user?.name || "—"}</span>
               </div>
-              <div className="flex justify-between py-2 border-b border-gray-100">
-                <span className="text-gray-500">Day</span>
-                <span className="font-medium">{selectedSession.schedule?.dayOfWeek || "—"}</span>
+              <div className="flex justify-between py-2 border-b border-border">
+                <span className="text-muted-foreground">Day</span>
+                <span className="font-medium text-foreground">{selectedSession.schedule?.dayOfWeek || "—"}</span>
               </div>
-              <div className="flex justify-between py-2 border-b border-gray-100">
-                <span className="text-gray-500">Start Time</span>
-                <span className="font-medium">
+              <div className="flex justify-between py-2 border-b border-border">
+                <span className="text-muted-foreground">Start Time</span>
+                <span className="font-medium text-foreground">
                   {selectedSession.schedule?.startTime
                     ? format(new Date(selectedSession.schedule.startTime), "PPP, p")
                     : "—"}
                 </span>
               </div>
-              <div className="flex justify-between py-2 border-b border-gray-100">
-                <span className="text-gray-500">Session Status</span>
+              <div className="flex justify-between py-2 border-b border-border">
+                <span className="text-muted-foreground">Session Status</span>
                 <span className={`px-2 py-0.5 text-xs rounded-full font-medium ${getStatusBadge(selectedSession.status)}`}>
                   {selectedSession.status}
                 </span>
               </div>
-              <div className="flex justify-between py-2 border-b border-gray-100">
-                <span className="text-gray-500">Payment Status</span>
+              <div className="flex justify-between py-2 border-b border-border">
+                <span className="text-muted-foreground">Payment Status</span>
                 <span className={`px-2 py-0.5 text-xs rounded-full font-medium ${getPaymentBadge(selectedSession.paymentStatus)}`}>
                   {selectedSession.paymentStatus}
                 </span>
               </div>
-              <div className="flex justify-between py-2 border-b border-gray-100">
-                <span className="text-gray-500">Amount</span>
-                <span className="font-medium">${selectedSession.payment?.amount?.toFixed(2) || "0.00"}</span>
+              <div className="flex justify-between py-2 border-b border-border">
+                <span className="text-muted-foreground">Amount</span>
+                <span className="font-medium text-foreground">${selectedSession.payment?.amount?.toFixed(2) || "0.00"}</span>
               </div>
               {selectedSession.review && (
-                <div className="flex justify-between py-2 border-b border-gray-100">
-                  <span className="text-gray-500">Your Review</span>
-                  <span className="font-medium flex items-center gap-1">
+                <div className="flex justify-between py-2 border-b border-border">
+                  <span className="text-muted-foreground">Your Review</span>
+                  <span className="font-medium text-foreground flex items-center gap-1">
                     <Star className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />
                     {selectedSession.review.rating}/5
                   </span>
@@ -604,7 +604,7 @@ export default function StudentDashboard() {
             </div>
             <div className="flex gap-2 mt-6 justify-end">
               {selectedSession.paymentStatus === "UNPAID" && (selectedSession.status === "SCHEDULED" || selectedSession.status === "CONFIRMED") && (
-                <Button onClick={() => { setIsSessionDetailOpen(false); handlePayment(selectedSession.id); }} className="bg-green-600 hover:bg-green-700 gap-1">
+                <Button onClick={() => { setIsSessionDetailOpen(false); handlePayment(selectedSession.id); }} className="bg-emerald-600 hover:bg-emerald-700 text-white gap-1">
                   <CreditCard className="w-4 h-4" /> Pay Now
                 </Button>
               )}
@@ -621,16 +621,16 @@ export default function StudentDashboard() {
 
       {/* ── Review Modal ── */}
       {isReviewModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
-            <h3 className="text-xl font-bold text-gray-900 mb-4">Leave a Review</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-card border border-border rounded-2xl shadow-2xl w-full max-w-md p-6">
+            <h3 className="text-xl font-bold text-foreground mb-4">Leave a Review</h3>
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label>Rating</Label>
                 <div className="flex gap-2">
                   {[1, 2, 3, 4, 5].map((star) => (
                     <button key={star} type="button" onClick={() => setReviewRating(star)} className="p-1 transition-transform hover:scale-110 focus:outline-none">
-                      <Star className={`w-8 h-8 ${star <= reviewRating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"}`} />
+                      <Star className={`w-8 h-8 ${star <= reviewRating ? "fill-yellow-400 text-yellow-400" : "text-muted-foreground/30"}`} />
                     </button>
                   ))}
                 </div>
@@ -639,7 +639,7 @@ export default function StudentDashboard() {
                 <Label htmlFor="review-comment">Comment</Label>
                 <textarea
                   id="review-comment"
-                  className="w-full min-h-[100px] p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none resize-none text-sm"
+                  className="w-full min-h-[100px] p-3 border border-border bg-background rounded-lg focus:ring-2 focus:ring-primary outline-none resize-none text-sm text-foreground"
                   placeholder="How was your session?"
                   value={reviewComment}
                   onChange={(e) => setReviewComment(e.target.value)}
@@ -648,7 +648,7 @@ export default function StudentDashboard() {
             </div>
             <div className="flex justify-end gap-3 mt-6">
               <Button variant="outline" onClick={() => setIsReviewModalOpen(false)}>Cancel</Button>
-              <Button onClick={handleSubmitReview} disabled={isSubmitting} className="bg-blue-600 hover:bg-blue-700">
+              <Button onClick={handleSubmitReview} disabled={isSubmitting}>
                 {isSubmitting ? "Submitting…" : "Submit Review"}
               </Button>
             </div>

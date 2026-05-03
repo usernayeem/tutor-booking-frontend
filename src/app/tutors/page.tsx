@@ -53,48 +53,49 @@ export default async function TutorsDirectory({ searchParams }: { searchParams: 
   }
 
   return (
+    <div className="min-h-screen bg-background">
     <div className="container mx-auto px-4 py-8 md:py-12">
       {/* Header & Search */}
       <div className="mb-10 text-center max-w-3xl mx-auto">
-        <h1 className="text-4xl font-bold tracking-tight text-gray-900 mb-4">
+        <h1 className="text-4xl font-bold tracking-tight text-foreground mb-4">
           {subjectName ? `${subjectName} Tutors` : "Find Your Perfect Tutor"}
         </h1>
-        <p className="text-lg text-gray-600 mb-8">
+        <p className="text-lg text-muted-foreground mb-8">
           {subjectName
             ? `Browse verified ${subjectName} tutors and book your first session today.`
             : "Browse our network of verified experts and book your first session today."}
         </p>
         
-        <form method="GET" action="/tutors" className="flex flex-col sm:flex-row gap-4 bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
+        <form method="GET" action="/tutors" className="flex flex-col sm:flex-row gap-3 bg-card p-3 rounded-xl shadow-sm border border-border">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-            <Input 
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
               name="search"
-              placeholder="Search by subject or name..." 
-              className="pl-10 h-12 border-gray-200 text-base rounded-xl"
+              placeholder="Search by subject or name..."
+              className="pl-10 h-11 rounded-lg"
               defaultValue={resolvedParams?.search || ""}
             />
           </div>
-          <Button type="submit" className="h-12 px-8 rounded-xl bg-blue-600 hover:bg-blue-700 text-white gap-2 font-medium">
+          <Button type="submit" className="h-11 px-8 rounded-lg font-medium">
             Search
           </Button>
         </form>
       </div>
 
-      {/* Grid of Tutors */}
-      <div className="flex flex-wrap justify-center gap-8">
+      {/* Grid of Tutors — 4 columns on desktop */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {tutors.map((tutor: any) => (
-          <div key={tutor.id} className="w-full max-w-[340px]">
-            <TutorCard tutor={tutor} />
-          </div>
+          <TutorCard key={tutor.id} tutor={tutor} />
         ))}
       </div>
       
       {tutors.length === 0 && (
-        <div className="text-center py-12 text-gray-500">
-          No tutors found. Please check back later.
+        <div className="text-center py-20 text-muted-foreground">
+          <p className="text-lg font-medium">No tutors found</p>
+          <p className="text-sm mt-1">Try a different search term or check back later.</p>
         </div>
       )}
+    </div>
     </div>
   );
 }

@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 
 export default function CTA() {
   return (
-    <section className="bg-white py-16 md:py-24">
+    <section className="bg-background py-16 md:py-24">
       <div className="container mx-auto px-4 md:px-6">
         <div className="relative overflow-hidden rounded-3xl bg-blue-600 px-6 py-16 sm:px-12 sm:py-24 lg:px-16 text-center shadow-2xl">
           {/* Background patterns */}
