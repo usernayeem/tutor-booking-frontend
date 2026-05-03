@@ -44,14 +44,14 @@ export default function AboutPage() {
 
               <div className="grid grid-cols-2 gap-6 pt-4">
                 <div className="space-y-2">
-                  <div className="h-10 w-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center">
+                  <div className="h-10 w-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
                     <Users className="h-5 w-5" />
                   </div>
                   <h3 className="font-bold">10k+ Students</h3>
                   <p className="text-sm text-muted-foreground">Trusted by learners worldwide</p>
                 </div>
                 <div className="space-y-2">
-                  <div className="h-10 w-10 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center">
+                  <div className="h-10 w-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
                     <Award className="h-5 w-5" />
                   </div>
                   <h3 className="font-bold">500+ Tutors</h3>

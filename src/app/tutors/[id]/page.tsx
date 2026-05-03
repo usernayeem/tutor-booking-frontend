@@ -109,7 +109,7 @@ export default function TutorProfilePage({ params }: { params: Promise<{ id: str
 
   return (
     <div className="container mx-auto px-4 py-8 md:py-12 max-w-6xl">
-      <Link href="/tutors" className="inline-flex items-center text-sm font-medium text-gray-500 hover:text-gray-900 mb-8 transition-colors">
+      <Link href="/tutors" className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-foreground mb-8 transition-colors">
         <ChevronLeft className="mr-1 h-4 w-4" />
         Back to Tutors
       </Link>
@@ -118,33 +118,33 @@ export default function TutorProfilePage({ params }: { params: Promise<{ id: str
         {/* Left Column: Tutor Info */}
         <div className="lg:col-span-2 space-y-8">
           {/* Header Card */}
-          <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-gray-100 flex flex-col md:flex-row gap-8 items-center md:items-start">
+          <div className="bg-card rounded-3xl p-6 md:p-8 shadow-sm border border-border flex flex-col md:flex-row gap-8 items-center md:items-start">
             <div className="relative w-40 h-40 shrink-0">
               <Image
                 src={tutorImage}
                 alt={tutorName}
                 fill
-                className="rounded-full object-cover border-4 border-white shadow-lg"
+                className="rounded-full object-cover border-4 border-card shadow-lg"
               />
-              <div className="absolute bottom-2 right-2 bg-green-500 w-5 h-5 rounded-full border-4 border-white" title="Online now"></div>
+              <div className="absolute bottom-2 right-2 bg-green-500 w-5 h-5 rounded-full border-4 border-card" title="Online now"></div>
             </div>
 
             <div className="flex-1 text-center md:text-left">
-              <div className="inline-flex items-center gap-1.5 bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-sm font-semibold mb-3">
+              <div className="inline-flex items-center gap-1.5 bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-semibold mb-3">
                 <CheckCircle2 className="h-4 w-4" />
                 Verified Tutor
               </div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">{tutorName}</h1>
-              <p className="text-xl text-gray-600 mb-4">{tutorSubject}</p>
+              <h1 className="text-3xl font-bold text-foreground mb-2">{tutorName}</h1>
+              <p className="text-xl text-muted-foreground mb-4">{tutorSubject}</p>
 
-              <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 md:gap-6 text-sm text-gray-600">
+              <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 md:gap-6 text-sm text-muted-foreground">
                 <div className="flex items-center gap-1.5">
                   <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
-                  <span className="font-bold text-gray-900">{avgRating}</span>
+                  <span className="font-bold text-foreground">{avgRating}</span>
                   <span>({tutorReviewsCount} reviews)</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <MapPin className="h-5 w-5 text-gray-400" />
+                  <MapPin className="h-5 w-5 text-muted-foreground/50" />
                   <span>{tutorLocation}</span>
                 </div>
               </div>
@@ -152,47 +152,47 @@ export default function TutorProfilePage({ params }: { params: Promise<{ id: str
           </div>
 
           {/* About Section */}
-          <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-gray-100">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">About Me</h2>
-            <p className="text-gray-600 leading-relaxed text-lg">{tutorAbout}</p>
+          <div className="bg-card rounded-3xl p-6 md:p-8 shadow-sm border border-border">
+            <h2 className="text-2xl font-bold text-foreground mb-4">About Me</h2>
+            <p className="text-muted-foreground leading-relaxed text-lg">{tutorAbout}</p>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8 pt-8 border-t border-gray-100">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8 pt-8 border-t border-border">
               <div>
-                <h3 className="font-semibold text-gray-900 flex items-center gap-2 mb-3">
-                  <GraduationCap className="h-5 w-5 text-blue-600" />
+                <h3 className="font-semibold text-foreground flex items-center gap-2 mb-3">
+                  <GraduationCap className="h-5 w-5 text-primary" />
                   Education
                 </h3>
-                <p className="text-gray-600">{tutorEducation}</p>
+                <p className="text-muted-foreground">{tutorEducation}</p>
               </div>
               <div>
-                <h3 className="font-semibold text-gray-900 flex items-center gap-2 mb-3">
-                  <Clock className="h-5 w-5 text-blue-600" />
+                <h3 className="font-semibold text-foreground flex items-center gap-2 mb-3">
+                  <Clock className="h-5 w-5 text-primary" />
                   Experience
                 </h3>
-                <p className="text-gray-600">{tutorExperience} of teaching</p>
+                <p className="text-muted-foreground">{tutorExperience} of teaching</p>
               </div>
             </div>
           </div>
 
           {/* Reviews Section */}
-          <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-gray-100">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-              <MessageSquare className="h-6 w-6 text-blue-600" />
+          <div className="bg-card rounded-3xl p-6 md:p-8 shadow-sm border border-border">
+            <h2 className="text-2xl font-bold text-foreground mb-6 flex items-center gap-2">
+              <MessageSquare className="h-6 w-6 text-primary" />
               Student Reviews
-              <span className="ml-2 text-base font-normal text-gray-400">({tutorReviewsCount})</span>
+              <span className="ml-2 text-base font-normal text-muted-foreground">({tutorReviewsCount})</span>
             </h2>
             {reviews.length === 0 ? (
               <p className="text-gray-500 text-center py-4">No reviews yet. Be the first to leave one!</p>
             ) : (
               <div className="space-y-4">
                 {reviews.map((review: any) => (
-                  <div key={review.id} className="border border-gray-100 rounded-2xl p-4">
+                  <div key={review.id} className="border border-border rounded-2xl p-4">
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
-                        <div className="w-9 h-9 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-sm font-bold uppercase">
+                        <div className="w-9 h-9 rounded-full bg-primary/10 text-primary flex items-center justify-center text-sm font-bold uppercase">
                           {review.student?.user?.name?.substring(0, 2) || "ST"}
                         </div>
-                        <span className="font-semibold text-gray-800">{review.student?.user?.name || "Student"}</span>
+                        <span className="font-semibold text-foreground">{review.student?.user?.name || "Student"}</span>
                       </div>
                       <div className="flex items-center gap-1">
                         {[1, 2, 3, 4, 5].map((s) => (
@@ -200,8 +200,8 @@ export default function TutorProfilePage({ params }: { params: Promise<{ id: str
                         ))}
                       </div>
                     </div>
-                    {review.comment && <p className="text-gray-600 text-sm mt-1">{review.comment}</p>}
-                    <p className="text-xs text-gray-400 mt-2">{review.createdAt ? format(new Date(review.createdAt), "PP") : ""}</p>
+                    {review.comment && <p className="text-muted-foreground text-sm mt-1">{review.comment}</p>}
+                    <p className="text-xs text-muted-foreground/70 mt-2">{review.createdAt ? format(new Date(review.createdAt), "PP") : ""}</p>
                   </div>
                 ))}
               </div>
@@ -211,18 +211,18 @@ export default function TutorProfilePage({ params }: { params: Promise<{ id: str
 
         {/* Right Column: Booking Widget */}
         <div className="lg:col-span-1">
-          <div className="bg-white rounded-3xl p-6 md:p-8 shadow-xl border border-gray-100 sticky top-24">
+          <div className="bg-card rounded-3xl p-6 md:p-8 shadow-xl border border-border sticky top-24">
             <div className="flex justify-between items-end mb-6">
               <div>
-                <span className="text-3xl font-extrabold text-gray-900">${tutor.hourlyRate || 0}</span>
-                <span className="text-gray-500">/hour</span>
+                <span className="text-3xl font-extrabold text-foreground">${tutor.hourlyRate || 0}</span>
+                <span className="text-muted-foreground">/hour</span>
               </div>
             </div>
 
             <div className="space-y-6 mb-8">
               {/* Time Slot Picker */}
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-900">Select Available Slot</label>
+                <label className="text-sm font-medium text-foreground">Select Available Slot</label>
                 <Select onValueChange={(value) => setSelectedScheduleId(value || "")} value={selectedScheduleId}>
                   <SelectTrigger className="h-12">
                     <SelectValue placeholder="Choose a time slot" />

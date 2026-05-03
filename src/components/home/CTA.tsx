@@ -19,10 +19,10 @@ export default function CTA() {
               Join thousands of students achieving their academic goals. Sign up today and get 20% off your first session!
             </p>
             <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
-              <Link href="/register" className={cn(buttonVariants({ size: "lg" }), "h-14 w-full bg-white text-blue-600 px-8 text-lg hover:bg-gray-50 sm:w-auto")}>
+              <Link href="/register" className={cn(buttonVariants({ size: "lg" }), "h-14 w-full bg-background text-foreground px-8 text-lg hover:bg-muted sm:w-auto")}>
                 Get Started Now
               </Link>
-              <Link href="/tutors" className={cn(buttonVariants({ size: "lg" }), "h-14 w-full bg-white text-blue-600 px-8 text-lg hover:bg-gray-50 sm:w-auto")}>
+              <Link href="/tutors" className={cn(buttonVariants({ size: "lg" }), "h-14 w-full bg-background text-foreground px-8 text-lg hover:bg-muted sm:w-auto")}>
                 Browse Tutors
               </Link>
             </div>

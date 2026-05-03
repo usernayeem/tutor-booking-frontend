@@ -56,28 +56,28 @@ function PaymentSuccessContent() {
 
   return (
     <div className="min-h-[80vh] flex items-center justify-center px-4">
-      <div className="max-w-md w-full text-center space-y-6 p-8 bg-white rounded-2xl shadow-xl border border-gray-100">
+      <div className="max-w-md w-full text-center space-y-6 p-8 bg-card rounded-2xl shadow-xl border border-border">
         <div className="flex justify-center">
           {isVerifying ? (
-            <div className="bg-blue-100 p-4 rounded-full animate-pulse">
-              <Loader2 className="w-12 h-12 text-blue-600 animate-spin" />
+            <div className="bg-primary/10 p-4 rounded-full animate-pulse">
+              <Loader2 className="w-12 h-12 text-primary animate-spin" />
             </div>
           ) : isSuccess ? (
-            <div className="bg-green-100 p-4 rounded-full">
-              <CheckCircle className="w-12 h-12 text-green-600" />
+            <div className="bg-green-500/10 p-4 rounded-full">
+              <CheckCircle className="w-12 h-12 text-green-500" />
             </div>
           ) : (
-            <div className="bg-red-100 p-4 rounded-full">
-              <XCircle className="w-12 h-12 text-red-600" />
+            <div className="bg-destructive/10 p-4 rounded-full">
+              <XCircle className="w-12 h-12 text-destructive" />
             </div>
           )}
         </div>
 
         <div className="space-y-2">
-          <h1 className="text-3xl font-bold text-gray-900">
+          <h1 className="text-3xl font-bold text-foreground">
             {isVerifying ? "Verifying Payment..." : isSuccess ? "Payment Successful!" : "Verification Failed"}
           </h1>
-          <p className="text-gray-500">
+          <p className="text-muted-foreground">
             {isVerifying
               ? "We are confirming your payment with Stripe. Please wait a moment."
               : isSuccess
@@ -90,7 +90,7 @@ function PaymentSuccessContent() {
         <div className="pt-6">
           <Link
             href="/dashboard/student"
-            className={`inline-flex items-center justify-center w-full px-6 py-3 text-base font-medium text-white rounded-lg transition-all shadow-lg gap-2 ${isSuccess ? "bg-green-600 hover:bg-green-700 shadow-green-100" : "bg-blue-600 hover:bg-blue-700 shadow-blue-100"
+            className={`inline-flex items-center justify-center w-full px-6 py-3 text-base font-medium text-white rounded-lg transition-all shadow-lg gap-2 ${isSuccess ? "bg-green-600 hover:bg-green-700 shadow-green-500/10" : "bg-primary hover:bg-primary/90 shadow-primary/10"
               }`}
           >
             {isSuccess ? "Go to My Dashboard" : "Back to Dashboard"}
