@@ -18,6 +18,9 @@ import Swal from 'sweetalert2';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { useRouter } from "next/navigation";
+import { StatCardSkeleton } from "@/components/dashboard/StatCardSkeleton";
+import { TableSkeleton } from "@/components/ui/table-skeleton";
+import { Skeleton } from "@/components/ui/skeleton";
 
 import {
   Table,
@@ -42,6 +45,7 @@ export default function AdminDashboard() {
   const [stats, setStats] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [selectedSession, setSelectedSession] = useState<any>(null);
   const [isSessionDetailOpen, setIsSessionDetailOpen] = useState(false);
   const router = useRouter();
@@ -84,6 +88,7 @@ export default function AdminDashboard() {
   }, [currentPage, currentSchedulePage, user, router]);
 
   const fetchData = async () => {
+    setIsLoading(true);
     try {
       // Pass large limits for tutors/students to ensure entity matching works across pages
       const [subjectsRes, tutorsRes, studentsRes, usersRes, schedulesRes, sessionsRes, statsRes] = await Promise.all([
@@ -123,6 +128,8 @@ export default function AdminDashboard() {
       setStats(statsRes?.data || null);
     } catch (error) {
       console.error("Failed to fetch dashboard data", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -416,36 +423,48 @@ export default function AdminDashboard() {
         {/* Overview Tab */}
         <TabsContent value="overview" className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <StatCard
-              title="Total Users"
-              value={usersMeta?.total || usersList.length}
-              description="Active platform users"
-              icon={<Users className="w-4 h-4 text-primary" />}
-            />
-            <StatCard
-              title="Total Tutors"
-              value={stats?.totalTutors || 0}
-              description="Approved tutors"
-              icon={<Users className="w-4 h-4 text-primary" />}
-            />
-            <StatCard
-              title="Active Subjects"
-              value={subjects.length}
-              description="Live in system"
-              icon={<BookOpen className="w-4 h-4 text-primary" />}
-            />
-            <StatCard
-              title="Master Classes"
-              value={stats?.totalSessions || 0}
-              description="Total sessions"
-              icon={<Calendar className="w-4 h-4 text-primary" />}
-            />
-            <StatCard
-              title="Total Revenue"
-              value={`$${stats?.totalRevenue || 0}`}
-              description="Platform earnings"
-              icon={<DollarSign className="w-4 h-4 text-emerald-500" />}
-            />
+            {isLoading ? (
+              <>
+                <StatCardSkeleton />
+                <StatCardSkeleton />
+                <StatCardSkeleton />
+                <StatCardSkeleton />
+                <StatCardSkeleton />
+              </>
+            ) : (
+              <>
+                <StatCard
+                  title="Total Users"
+                  value={usersMeta?.total || usersList.length}
+                  description="Active platform users"
+                  icon={<Users className="w-4 h-4 text-primary" />}
+                />
+                <StatCard
+                  title="Total Tutors"
+                  value={stats?.totalTutors || 0}
+                  description="Approved tutors"
+                  icon={<Users className="w-4 h-4 text-primary" />}
+                />
+                <StatCard
+                  title="Active Subjects"
+                  value={subjects.length}
+                  description="Live in system"
+                  icon={<BookOpen className="w-4 h-4 text-primary" />}
+                />
+                <StatCard
+                  title="Master Classes"
+                  value={stats?.totalSessions || 0}
+                  description="Total sessions"
+                  icon={<Calendar className="w-4 h-4 text-primary" />}
+                />
+                <StatCard
+                  title="Total Revenue"
+                  value={`$${stats?.totalRevenue || 0}`}
+                  description="Platform earnings"
+                  icon={<DollarSign className="w-4 h-4 text-emerald-500" />}
+                />
+              </>
+            )}
           </div>
         </TabsContent>
 
@@ -643,28 +662,41 @@ export default function AdminDashboard() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {filteredUsers.map((u, i) => (
-                        <TableRow key={i} className="hover:bg-muted/50 border-border">
-                          <TableCell className="font-medium text-foreground">{u.name}</TableCell>
-                          <TableCell className="text-muted-foreground">{u.email}</TableCell>
-                          <TableCell className="text-muted-foreground">{u.role}</TableCell>
-                          <TableCell>
-                            <Badge variant={u.status === "ACTIVE" ? "default" : "secondary"}>
-                              {u.status || "ACTIVE"}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-muted-foreground">{u.createdAt ? format(new Date(u.createdAt), "PP") : "N/A"}</TableCell>
-                          <TableCell className="text-right space-x-2">
-                            <Button variant="outline" size="sm" onClick={() => openEditModal(u)}>Edit</Button>
-                            <Button variant="ghost" size="sm" onClick={() => handleDeleteUser(u)} className="text-destructive hover:text-destructive hover:bg-destructive/10">Delete</Button>
-                          </TableCell>
-                        </TableRow>
-                      ))}
+                      {isLoading ? (
+                        Array.from({ length: 5 }).map((_, i) => (
+                          <TableRow key={i}>
+                            <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                            <TableCell><Skeleton className="h-4 w-40" /></TableCell>
+                            <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                            <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                            <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                            <TableCell className="text-right"><Skeleton className="h-8 w-20 ml-auto" /></TableCell>
+                          </TableRow>
+                        ))
+                      ) : (
+                        filteredUsers.map((u, i) => (
+                          <TableRow key={i} className="hover:bg-muted/50 border-border">
+                            <TableCell className="font-medium text-foreground">{u.name}</TableCell>
+                            <TableCell className="text-muted-foreground">{u.email}</TableCell>
+                            <TableCell className="text-muted-foreground">{u.role}</TableCell>
+                            <TableCell>
+                              <Badge variant={u.status === "ACTIVE" ? "default" : "secondary"}>
+                                {u.status || "ACTIVE"}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-muted-foreground">{u.createdAt ? format(new Date(u.createdAt), "PP") : "N/A"}</TableCell>
+                            <TableCell className="text-right space-x-2">
+                              <Button variant="outline" size="sm" onClick={() => openEditModal(u)}>Edit</Button>
+                              <Button variant="ghost" size="sm" onClick={() => handleDeleteUser(u)} className="text-destructive hover:text-destructive hover:bg-destructive/10">Delete</Button>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      )}
                     </TableBody>
                   </Table>
-                  {filteredUsers.length === 0 && (
+                  {!isLoading && filteredUsers.length === 0 && (
                     <div className="p-8 text-center text-muted-foreground">
-                      {searchQuery ? "No users found matching your search." : "Loading users..."}
+                      {searchQuery ? "No users found matching your search." : "No users available."}
                     </div>
                   )}
                   {/* Pagination Controls */}
@@ -779,32 +811,49 @@ export default function AdminDashboard() {
                 <Button onClick={() => setIsCreatingSubject(true)}>+ Add Subject</Button>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {subjects.length > 0 ? subjects.map((subject) => (
-                    <div key={subject.id} className="flex items-center justify-between p-4 border rounded-lg bg-card hover:bg-muted/50 transition-colors border-border">
-                      <div className="flex items-center gap-3">
-                        {subject.iconUrl ? (
-                          <img src={subject.iconUrl} alt={subject.name} className="w-10 h-10 rounded-lg object-cover border border-border" />
-                        ) : (
-                          <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20">
-                            <BookOpen className="w-5 h-5 text-primary" />
+                {isLoading ? (
+                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                     {[1, 2, 3, 4].map((i) => (
+                       <div key={i} className="flex items-center justify-between p-4 border rounded-lg bg-card border-border">
+                         <div className="flex items-center gap-3">
+                           <Skeleton className="w-10 h-10 rounded-lg" />
+                           <div className="space-y-1">
+                             <Skeleton className="h-4 w-32" />
+                             <Skeleton className="h-3 w-48" />
+                           </div>
+                         </div>
+                         <Skeleton className="h-8 w-8 rounded-full" />
+                       </div>
+                     ))}
+                   </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {subjects.length > 0 ? subjects.map((subject) => (
+                      <div key={subject.id} className="flex items-center justify-between p-4 border rounded-lg bg-card hover:bg-muted/50 transition-colors border-border">
+                        <div className="flex items-center gap-3">
+                          {subject.iconUrl ? (
+                            <img src={subject.iconUrl} alt={subject.name} className="w-10 h-10 rounded-lg object-cover border border-border" />
+                          ) : (
+                            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20">
+                              <BookOpen className="w-5 h-5 text-primary" />
+                            </div>
+                          )}
+                          <div>
+                            <span className="font-medium text-foreground">{subject.name}</span>
+                            {subject.description && <p className="text-xs text-muted-foreground mt-0.5">{subject.description}</p>}
                           </div>
-                        )}
-                        <div>
-                          <span className="font-medium text-foreground">{subject.name}</span>
-                          {subject.description && <p className="text-xs text-muted-foreground mt-0.5">{subject.description}</p>}
+                        </div>
+                        <div className="flex gap-2 text-muted-foreground">
+                          <Button variant="ghost" size="icon" onClick={() => handleDeleteSubject(subject.id)} className="hover:bg-destructive/10">
+                            <XCircle className="w-5 h-5 text-destructive" />
+                          </Button>
                         </div>
                       </div>
-                      <div className="flex gap-2 text-muted-foreground">
-                        <Button variant="ghost" size="icon" onClick={() => handleDeleteSubject(subject.id)} className="hover:bg-destructive/10">
-                          <XCircle className="w-5 h-5 text-destructive" />
-                        </Button>
-                      </div>
-                    </div>
-                  )) : (
-                    <p className="text-muted-foreground p-4">No subjects found. Add one to get started!</p>
-                  )}
-                </div>
+                    )) : (
+                      <p className="text-muted-foreground p-4">No subjects found. Add one to get started!</p>
+                    )}
+                  </div>
+                )}
               </CardContent>
             </Card>
           )}
@@ -864,22 +913,28 @@ export default function AdminDashboard() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {schedules.map((schedule, i) => (
-                      <TableRow key={schedule.id || i} className="hover:bg-muted/50 border-border">
-                        <TableCell className="text-foreground">{schedule.startTime ? format(new Date(schedule.startTime), "PP") : "N/A"}</TableCell>
-                        <TableCell className="text-muted-foreground">{schedule.startTime ? format(new Date(schedule.startTime), "p") : schedule.startTime}</TableCell>
-                        <TableCell className="text-muted-foreground">{schedule.endTime ? format(new Date(schedule.endTime), "p") : schedule.endTime}</TableCell>
-                        <TableCell className="text-right">
-                          <Button variant="ghost" size="sm" onClick={() => handleDeleteSchedule(schedule.id)} className="text-destructive hover:text-destructive hover:bg-destructive/10">
-                            Delete
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                    {schedules.length === 0 && (
-                      <TableRow>
-                        <TableCell colSpan={4} className="text-center p-8 text-muted-foreground">No schedules found. Generate some above.</TableCell>
-                      </TableRow>
+                    {isLoading ? (
+                       <TableSkeleton columns={4} rows={5} />
+                    ) : (
+                      <>
+                        {schedules.map((schedule, i) => (
+                          <TableRow key={schedule.id || i} className="hover:bg-muted/50 border-border">
+                            <TableCell className="text-foreground">{schedule.startTime ? format(new Date(schedule.startTime), "PP") : "N/A"}</TableCell>
+                            <TableCell className="text-muted-foreground">{schedule.startTime ? format(new Date(schedule.startTime), "p") : schedule.startTime}</TableCell>
+                            <TableCell className="text-muted-foreground">{schedule.endTime ? format(new Date(schedule.endTime), "p") : schedule.endTime}</TableCell>
+                            <TableCell className="text-right">
+                              <Button variant="ghost" size="sm" onClick={() => handleDeleteSchedule(schedule.id)} className="text-destructive hover:text-destructive hover:bg-destructive/10">
+                                Delete
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                        {schedules.length === 0 && (
+                          <TableRow>
+                            <TableCell colSpan={4} className="text-center p-8 text-muted-foreground">No schedules found. Generate some above.</TableCell>
+                          </TableRow>
+                        )}
+                      </>
                     )}
                   </TableBody>
                 </Table>
@@ -934,41 +989,47 @@ export default function AdminDashboard() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {sessions.map((session, i) => (
-                      <TableRow key={session.id || i} className="hover:bg-muted/50 border-border">
-                        <TableCell className="font-mono text-xs text-muted-foreground">{session.id.substring(0, 8)}...</TableCell>
-                        <TableCell className="text-foreground">{session.student?.user?.name || 'Unknown'}</TableCell>
-                        <TableCell className="text-foreground">{session.tutor?.user?.name || 'Unknown'}</TableCell>
-                        <TableCell>
-                          <Badge variant={session.status === 'COMPLETED' ? 'default' : session.status === 'CANCELED' ? 'destructive' : 'secondary'}>
-                            {session.status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right space-x-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="mr-2"
-                            onClick={() => handleViewSession(session.id)}
-                          >
-                            <Eye className="w-4 h-4 mr-1" /> View
-                          </Button>
-                          <select
-                            className="h-8 rounded-md border border-border bg-background px-2 text-xs text-foreground focus:ring-1 focus:ring-primary outline-none"
-                            value={session.status}
-                            onChange={(e) => handleUpdateSessionStatus(session.id, e.target.value)}
-                          >
-                            <option value="SCHEDULED">SCHEDULED</option>
-                            <option value="COMPLETED">COMPLETED</option>
-                            <option value="CANCELED">CANCELED</option>
-                          </select>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                    {sessions.length === 0 && (
-                      <TableRow>
-                        <TableCell colSpan={5} className="text-center p-8 text-muted-foreground">No sessions found.</TableCell>
-                      </TableRow>
+                    {isLoading ? (
+                      <TableSkeleton columns={5} rows={5} />
+                    ) : (
+                      <>
+                        {sessions.map((session, i) => (
+                          <TableRow key={session.id || i} className="hover:bg-muted/50 border-border">
+                            <TableCell className="font-mono text-xs text-muted-foreground">{session.id.substring(0, 8)}...</TableCell>
+                            <TableCell className="text-foreground">{session.student?.user?.name || 'Unknown'}</TableCell>
+                            <TableCell className="text-foreground">{session.tutor?.user?.name || 'Unknown'}</TableCell>
+                            <TableCell>
+                              <Badge variant={session.status === 'COMPLETED' ? 'default' : session.status === 'CANCELED' ? 'destructive' : 'secondary'}>
+                                {session.status}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-right space-x-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="mr-2"
+                                onClick={() => handleViewSession(session.id)}
+                              >
+                                <Eye className="w-4 h-4 mr-1" /> View
+                              </Button>
+                              <select
+                                className="h-8 rounded-md border border-border bg-background px-2 text-xs text-foreground focus:ring-1 focus:ring-primary outline-none"
+                                value={session.status}
+                                onChange={(e) => handleUpdateSessionStatus(session.id, e.target.value)}
+                              >
+                                <option value="SCHEDULED">SCHEDULED</option>
+                                <option value="COMPLETED">COMPLETED</option>
+                                <option value="CANCELED">CANCELED</option>
+                              </select>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                        {sessions.length === 0 && (
+                          <TableRow>
+                            <TableCell colSpan={5} className="text-center p-8 text-muted-foreground">No sessions found.</TableCell>
+                          </TableRow>
+                        )}
+                      </>
                     )}
                   </TableBody>
                 </Table>

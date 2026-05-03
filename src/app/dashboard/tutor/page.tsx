@@ -16,6 +16,9 @@ import { tutorService } from "@/services/tutor";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import { useRouter } from "next/navigation";
+import { StatCardSkeleton } from "@/components/dashboard/StatCardSkeleton";
+import { TableSkeleton } from "@/components/ui/table-skeleton";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function TutorDashboard() {
   const { user, logout } = useAuth();
@@ -136,9 +139,7 @@ export default function TutorDashboard() {
     }
   };
 
-  if (isLoading) {
-    return <div className="p-8 text-center text-muted-foreground">Loading dashboard...</div>;
-  }
+
 
   const upcomingSessions = sessions.filter(s => s.status === "SCHEDULED" || s.status === "PENDING");
   const completedSessions = sessions.filter(s => s.status === "COMPLETED");
@@ -171,27 +172,37 @@ export default function TutorDashboard() {
         {/* Overview Tab */}
         <TabsContent value="overview" className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <StatCard
-              title="Upcoming Classes"
-              value={upcomingSessions.length}
-              description=""
-              icon={<Calendar className="w-5 h-5" />}
-              theme="blue"
-            />
-            <StatCard
-              title="Completed Classes"
-              value={completedSessions.length}
-              description=""
-              icon={<CheckCircle className="w-5 h-5" />}
-              theme="green"
-            />
-            <StatCard
-              title="Total Earnings"
-              value={`$${totalEarnings}`}
-              description=""
-              icon={<DollarSign className="w-5 h-5" />}
-              theme="purple"
-            />
+            {isLoading ? (
+              <>
+                <StatCardSkeleton />
+                <StatCardSkeleton />
+                <StatCardSkeleton />
+              </>
+            ) : (
+              <>
+                <StatCard
+                  title="Upcoming Classes"
+                  value={upcomingSessions.length}
+                  description=""
+                  icon={<Calendar className="w-5 h-5" />}
+                  theme="blue"
+                />
+                <StatCard
+                  title="Completed Classes"
+                  value={completedSessions.length}
+                  description=""
+                  icon={<CheckCircle className="w-5 h-5" />}
+                  theme="green"
+                />
+                <StatCard
+                  title="Total Earnings"
+                  value={`$${totalEarnings}`}
+                  description=""
+                  icon={<DollarSign className="w-5 h-5" />}
+                  theme="purple"
+                />
+              </>
+            )}
           </div>
 
         </TabsContent>
@@ -204,7 +215,19 @@ export default function TutorDashboard() {
               <CardDescription>Select slots from the master schedule to make them available for booking.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              {masterSchedules.length > 0 ? (
+              {isLoading ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="p-4 border rounded-lg flex flex-col gap-3 border-border bg-card">
+                      <div className="space-y-2">
+                        <Skeleton className="h-5 w-40" />
+                        <Skeleton className="h-4 w-32" />
+                      </div>
+                      <Skeleton className="h-10 w-full mt-4" />
+                    </div>
+                  ))}
+                </div>
+              ) : masterSchedules.length > 0 ? (
                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                    {masterSchedules.map((schedule) => {
                      // Check if this master schedule is in tutorSchedules
@@ -256,7 +279,9 @@ export default function TutorDashboard() {
               <CardDescription>Review and manage all your upcoming and past classes.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {sessions.length > 0 ? sessions.map((session) => (
+              {isLoading ? (
+                <TableSkeleton columns={3} rows={3} />
+              ) : sessions.length > 0 ? sessions.map((session) => (
                 <div key={session.id} className={`flex flex-col md:flex-row items-center justify-between p-4 border rounded-xl gap-4 border-border ${session.status === 'COMPLETED' ? 'bg-card' : 'bg-muted/30'}`}>
                   <div>
                     <h4 className="font-semibold text-foreground">{session.student?.user?.name || "Unknown Student"}</h4>
@@ -293,108 +318,130 @@ export default function TutorDashboard() {
               <CardDescription>Update how you appear to students in the directory.</CardDescription>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleUpdateProfile} className="space-y-6">
-                {/* Profile Photo Upload */}
-                <div className="space-y-2">
-                  <Label className="flex items-center gap-2"><ImageIcon className="w-4 h-4" /> Profile Photo</Label>
+              {isLoading ? (
+                <div className="space-y-6">
                   <div className="flex items-center gap-5">
-                    {profilePhotoPreview || tutorData?.profilePhoto ? (
-                      <img
-                        src={profilePhotoPreview || tutorData?.profilePhoto}
-                        alt="Profile"
-                        className="w-20 h-20 rounded-full object-cover border-2 border-primary/20 shadow"
-                      />
-                    ) : (
-                      <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center border-2 border-dashed border-primary/30 text-primary font-bold text-2xl uppercase">
-                        {profileForm.name?.substring(0, 2) || "TU"}
-                      </div>
-                    )}
-                    <div>
-                      <input
-                        type="file"
-                        id="tutor-photo-upload"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) {
-                            setProfilePhotoFile(file);
-                            setProfilePhotoPreview(URL.createObjectURL(file));
-                          }
-                        }}
-                      />
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => document.getElementById('tutor-photo-upload')?.click()}
-                      >
-                        {profilePhotoFile ? "Change Photo" : "Upload Photo"}
-                      </Button>
-                      {profilePhotoFile && (
-                        <p className="text-xs text-green-600 mt-1 font-medium">{profilePhotoFile.name}</p>
-                      )}
-                      <p className="text-xs text-muted-foreground mt-1">PNG, JPG or WEBP — max 2MB</p>
+                    <Skeleton className="w-20 h-20 rounded-full" />
+                    <div className="space-y-2">
+                      <Skeleton className="h-8 w-32" />
+                      <Skeleton className="h-4 w-48" />
                     </div>
                   </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {[1, 2, 3, 4, 5].map((i) => (
+                      <div key={i} className="space-y-2">
+                        <Skeleton className="h-4 w-24" />
+                        <Skeleton className="h-10 w-full" />
+                      </div>
+                    ))}
+                  </div>
+                  <Skeleton className="h-24 w-full" />
+                  <Skeleton className="h-10 w-40" />
                 </div>
+              ) : (
+                <form onSubmit={handleUpdateProfile} className="space-y-6">
+                  {/* Profile Photo Upload */}
+                  <div className="space-y-2">
+                    <Label className="flex items-center gap-2"><ImageIcon className="w-4 h-4" /> Profile Photo</Label>
+                    <div className="flex items-center gap-5">
+                      {profilePhotoPreview || tutorData?.profilePhoto ? (
+                        <img
+                          src={profilePhotoPreview || tutorData?.profilePhoto}
+                          alt="Profile"
+                          className="w-20 h-20 rounded-full object-cover border-2 border-primary/20 shadow"
+                        />
+                      ) : (
+                        <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center border-2 border-dashed border-primary/30 text-primary font-bold text-2xl uppercase">
+                          {profileForm.name?.substring(0, 2) || "TU"}
+                        </div>
+                      )}
+                      <div>
+                        <input
+                          type="file"
+                          id="tutor-photo-upload"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              setProfilePhotoFile(file);
+                              setProfilePhotoPreview(URL.createObjectURL(file));
+                            }
+                          }}
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => document.getElementById('tutor-photo-upload')?.click()}
+                        >
+                          {profilePhotoFile ? "Change Photo" : "Upload Photo"}
+                        </Button>
+                        {profilePhotoFile && (
+                          <p className="text-xs text-green-600 mt-1 font-medium">{profilePhotoFile.name}</p>
+                        )}
+                        <p className="text-xs text-muted-foreground mt-1">PNG, JPG or WEBP — max 2MB</p>
+                      </div>
+                    </div>
+                  </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="name">Full Name</Label>
-                  <Input 
-                    id="name" 
-                    value={profileForm.name} 
-                    onChange={e => setProfileForm({...profileForm, name: e.target.value})}
-                    placeholder="Enter your full name"
-                  />
-                </div>
-                
-                <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="qualification">Highest Qualification</Label>
+                    <Label htmlFor="name">Full Name</Label>
                     <Input 
-                      id="qualification" 
-                      value={profileForm.qualification} 
-                      onChange={e => setProfileForm({...profileForm, qualification: e.target.value})} 
+                      id="name" 
+                      value={profileForm.name} 
+                      onChange={e => setProfileForm({...profileForm, name: e.target.value})}
+                      placeholder="Enter your full name"
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="experience">Years of Experience</Label>
-                    <Input 
-                      id="experience" 
-                      type="number"
-                      value={profileForm.experience} 
-                      onChange={e => setProfileForm({...profileForm, experience: e.target.value})} 
-                    />
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="qualification">Highest Qualification</Label>
+                      <Input 
+                        id="qualification" 
+                        value={profileForm.qualification} 
+                        onChange={e => setProfileForm({...profileForm, qualification: e.target.value})} 
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="experience">Years of Experience</Label>
+                      <Input 
+                        id="experience" 
+                        type="number"
+                        value={profileForm.experience} 
+                        onChange={e => setProfileForm({...profileForm, experience: e.target.value})} 
+                      />
+                    </div>
                   </div>
-                </div>
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="rate">Hourly Rate ($)</Label>
-                    <Input 
-                      id="rate" 
-                      type="number" 
-                      value={profileForm.hourlyRate} 
-                      onChange={e => setProfileForm({...profileForm, hourlyRate: e.target.value})} 
-                    />
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="rate">Hourly Rate ($)</Label>
+                      <Input 
+                        id="rate" 
+                        type="number" 
+                        value={profileForm.hourlyRate} 
+                        onChange={e => setProfileForm({...profileForm, hourlyRate: e.target.value})} 
+                      />
+                    </div>
                   </div>
-                </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="bio">About Me (Bio)</Label>
-                  <Textarea 
-                    id="bio" 
-                    rows={4} 
-                    value={profileForm.bio}
-                    onChange={e => setProfileForm({...profileForm, bio: e.target.value})}
-                  />
-                </div>
-                
-                <Button type="submit" disabled={isSubmitting} className="w-full md:w-auto">
-                  {isSubmitting ? "Saving..." : "Save Public Profile"}
-                </Button>
-              </form>
+                  <div className="space-y-2">
+                    <Label htmlFor="bio">About Me (Bio)</Label>
+                    <Textarea 
+                      id="bio" 
+                      rows={4} 
+                      value={profileForm.bio}
+                      onChange={e => setProfileForm({...profileForm, bio: e.target.value})}
+                    />
+                  </div>
+                  
+                  <Button type="submit" disabled={isSubmitting} className="w-full md:w-auto">
+                    {isSubmitting ? "Saving..." : "Save Public Profile"}
+                  </Button>
+                </form>
+              )}
             </CardContent>
           </Card>
         </TabsContent>

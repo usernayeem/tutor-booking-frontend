@@ -22,6 +22,9 @@ import api from "@/services/api";
 import { format } from "date-fns";
 import Swal from "sweetalert2";
 import { useRouter } from "next/navigation";
+import { StatCardSkeleton } from "@/components/dashboard/StatCardSkeleton";
+import { TableSkeleton } from "@/components/ui/table-skeleton";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function StudentDashboard() {
   const { user, logout, refreshUser } = useAuth();
@@ -260,27 +263,37 @@ export default function StudentDashboard() {
           {/* ── Overview ── */}
           <TabsContent value="overview" className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <StatCard
-                title="Upcoming Sessions"
-                value={isLoading ? "—" : upcomingSessions.length}
-                description="Scheduled ahead"
-                icon={<Calendar className="w-4 h-4 text-primary" />}
-                theme="default"
-              />
-              <StatCard
-                title="Completed Sessions"
-                value={isLoading ? "—" : completedSessions.length}
-                description="All time"
-                icon={<CheckCircle2 className="w-4 h-4 text-emerald-500" />}
-                theme="default"
-              />
-              <StatCard
-                title="Tutors Booked"
-                value={isLoading ? "—" : uniqueTutors.size}
-                description="Unique tutors"
-                icon={<User className="w-4 h-4 text-primary" />}
-                theme="default"
-              />
+              {isLoading ? (
+                <>
+                  <StatCardSkeleton />
+                  <StatCardSkeleton />
+                  <StatCardSkeleton />
+                </>
+              ) : (
+                <>
+                  <StatCard
+                    title="Upcoming Sessions"
+                    value={upcomingSessions.length}
+                    description="Scheduled ahead"
+                    icon={<Calendar className="w-4 h-4 text-primary" />}
+                    theme="default"
+                  />
+                  <StatCard
+                    title="Completed Sessions"
+                    value={completedSessions.length}
+                    description="All time"
+                    icon={<CheckCircle2 className="w-4 h-4 text-emerald-500" />}
+                    theme="default"
+                  />
+                  <StatCard
+                    title="Tutors Booked"
+                    value={uniqueTutors.size}
+                    description="Unique tutors"
+                    icon={<User className="w-4 h-4 text-primary" />}
+                    theme="default"
+                  />
+                </>
+              )}
             </div>
 
             <Card className="bg-card border-border shadow-sm">
@@ -289,7 +302,13 @@ export default function StudentDashboard() {
               </CardHeader>
               <CardContent>
                 {isLoading ? (
-                  <p className="text-muted-foreground text-center py-4">Loading…</p>
+                  <div className="flex items-center gap-4">
+                    <Skeleton className="w-14 h-14 rounded-full" />
+                    <div className="flex-1 space-y-2">
+                      <Skeleton className="h-5 w-40" />
+                      <Skeleton className="h-4 w-60" />
+                    </div>
+                  </div>
                 ) : nextSession ? (
                   <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                     <div className="flex items-center gap-4">
@@ -337,7 +356,7 @@ export default function StudentDashboard() {
               </CardHeader>
               <CardContent>
                 {isLoading ? (
-                  <div className="text-center py-8 text-muted-foreground">Loading sessions…</div>
+                  <TableSkeleton columns={5} rows={3} />
                 ) : sessions.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
                     No bookings yet. <a href="/tutors" className="text-primary underline">Find a tutor</a>.
@@ -409,7 +428,7 @@ export default function StudentDashboard() {
               </CardHeader>
               <CardContent>
                 {isPaymentsLoading ? (
-                  <div className="text-center py-8 text-muted-foreground">Loading payments…</div>
+                  <TableSkeleton columns={4} rows={3} />
                 ) : payments.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">No payment records found.</div>
                 ) : (
@@ -448,102 +467,129 @@ export default function StudentDashboard() {
 
           {/* ── Profile ── */}
           <TabsContent value="profile">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {isLoading ? (
               <Card className="bg-card border-border shadow-sm">
                 <CardHeader>
-                  <CardTitle>Profile Settings</CardTitle>
-                  <CardDescription>Update your personal information.</CardDescription>
+                  <Skeleton className="h-7 w-40 mb-2" />
+                  <Skeleton className="h-4 w-60" />
                 </CardHeader>
-                <CardContent>
-                  <form onSubmit={handleUpdateProfile} className="space-y-4">
-                    {/* Profile Photo */}
+                <CardContent className="space-y-6">
+                  <div className="flex items-center gap-4">
+                    <Skeleton className="w-16 h-16 rounded-full" />
                     <div className="space-y-2">
-                      <Label className="flex items-center gap-2"><ImageIcon className="w-4 h-4" /> Profile Photo</Label>
-                      <div className="flex items-center gap-4">
-                        {profilePhotoPreview || user?.Student?.profilePhoto ? (
-                          <img
-                            src={(profilePhotoPreview || user?.Student?.profilePhoto) as string}
-                            alt="Profile"
-                            className="w-16 h-16 rounded-full object-cover border-2 border-primary/20 shadow-sm"
-                          />
-                        ) : (
-                          <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center border-2 border-dashed border-primary/30 text-primary font-bold text-xl uppercase">
-                            {user?.name?.substring(0, 2) || "ST"}
-                          </div>
-                        )}
-                        <div>
-                          <input
-                            type="file"
-                            id="student-photo-upload"
-                            accept="image/*"
-                            className="hidden"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (file) {
-                                setProfilePhotoFile(file);
-                                setProfilePhotoPreview(URL.createObjectURL(file));
-                              }
-                            }}
-                          />
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() => document.getElementById('student-photo-upload')?.click()}
-                          >
-                            {profilePhotoFile ? "Change Photo" : "Upload Photo"}
-                          </Button>
-                          {profilePhotoFile && (
-                            <p className="text-xs text-emerald-600 mt-1 font-medium">{profilePhotoFile.name}</p>
-                          )}
-                          <p className="text-xs text-muted-foreground mt-1">PNG, JPG or WEBP — max 2MB</p>
-                        </div>
+                      <Skeleton className="h-9 w-32" />
+                      <Skeleton className="h-4 w-48" />
+                    </div>
+                  </div>
+                  <div className="space-y-4">
+                    {[1, 2, 3, 4].map((i) => (
+                      <div key={i} className="space-y-2">
+                        <Skeleton className="h-4 w-24" />
+                        <Skeleton className="h-10 w-full" />
                       </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Full Name</Label>
-                      <Input value={user?.name || ""} disabled className="bg-muted" />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Email</Label>
-                      <Input type="email" value={user?.email || ""} disabled className="bg-muted" />
-                      <p className="text-xs text-muted-foreground">Name and email cannot be changed here.</p>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="contactNumber">Contact Number</Label>
-                      <Input id="contactNumber" value={contactNumber} onChange={(e) => setContactNumber(e.target.value)} placeholder="+1 234 567 8900" />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="address">Address</Label>
-                      <Input id="address" value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Your city, country" />
-                    </div>
-                    <Button type="submit" disabled={isSubmitting}>
-                      {isSubmitting ? "Saving…" : "Save Changes"}
-                    </Button>
-                  </form>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-card border-destructive/20 shadow-sm">
-                <CardHeader>
-                  <CardTitle className="text-destructive flex items-center gap-2">
-                    <AlertTriangle className="w-5 h-5" /> Danger Zone
-                  </CardTitle>
-                  <CardDescription>Irreversible and destructive actions.</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="p-4 border border-destructive/20 rounded-lg bg-destructive/5">
-                    <p className="font-medium text-foreground mb-1">Delete Account</p>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      Permanently remove your account and all associated data from the platform. This action cannot be undone.
-                    </p>
-                    <Button variant="outline" onClick={handleDeleteAccount} className="border-destructive/30 text-destructive hover:bg-destructive hover:text-destructive-foreground gap-2">
-                      <Trash2 className="w-4 h-4" /> Delete My Account
-                    </Button>
+                    ))}
+                    <Skeleton className="h-10 w-32" />
                   </div>
                 </CardContent>
               </Card>
-            </div>
+            ) : (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <Card className="bg-card border-border shadow-sm">
+                  <CardHeader>
+                    <CardTitle>Profile Settings</CardTitle>
+                    <CardDescription>Update your personal information.</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <form onSubmit={handleUpdateProfile} className="space-y-4">
+                      {/* Profile Photo */}
+                      <div className="space-y-2">
+                        <Label className="flex items-center gap-2"><ImageIcon className="w-4 h-4" /> Profile Photo</Label>
+                        <div className="flex items-center gap-4">
+                          {profilePhotoPreview || user?.Student?.profilePhoto ? (
+                            <img
+                              src={(profilePhotoPreview || user?.Student?.profilePhoto) as string}
+                              alt="Profile"
+                              className="w-16 h-16 rounded-full object-cover border-2 border-primary/20 shadow-sm"
+                            />
+                          ) : (
+                            <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center border-2 border-dashed border-primary/30 text-primary font-bold text-xl uppercase">
+                              {user?.name?.substring(0, 2) || "ST"}
+                            </div>
+                          )}
+                          <div>
+                            <input
+                              type="file"
+                              id="student-photo-upload"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) {
+                                  setProfilePhotoFile(file);
+                                  setProfilePhotoPreview(URL.createObjectURL(file));
+                                }
+                              }}
+                            />
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => document.getElementById('student-photo-upload')?.click()}
+                            >
+                              {profilePhotoFile ? "Change Photo" : "Upload Photo"}
+                            </Button>
+                            {profilePhotoFile && (
+                              <p className="text-xs text-emerald-600 mt-1 font-medium">{profilePhotoFile.name}</p>
+                            )}
+                            <p className="text-xs text-muted-foreground mt-1">PNG, JPG or WEBP — max 2MB</p>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Full Name</Label>
+                        <Input value={user?.name || ""} disabled className="bg-muted" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Email</Label>
+                        <Input type="email" value={user?.email || ""} disabled className="bg-muted" />
+                        <p className="text-xs text-muted-foreground">Name and email cannot be changed here.</p>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="contactNumber">Contact Number</Label>
+                        <Input id="contactNumber" value={contactNumber} onChange={(e) => setContactNumber(e.target.value)} placeholder="+1 234 567 8900" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="address">Address</Label>
+                        <Input id="address" value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Your city, country" />
+                      </div>
+                      <Button type="submit" disabled={isSubmitting}>
+                        {isSubmitting ? "Saving…" : "Save Changes"}
+                      </Button>
+                    </form>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-card border-destructive/20 shadow-sm">
+                  <CardHeader>
+                    <CardTitle className="text-destructive flex items-center gap-2">
+                      <AlertTriangle className="w-5 h-5" /> Danger Zone
+                    </CardTitle>
+                    <CardDescription>Irreversible and destructive actions.</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="p-4 border border-destructive/20 rounded-lg bg-destructive/5">
+                      <p className="font-medium text-foreground mb-1">Delete Account</p>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        Permanently remove your account and all associated data from the platform. This action cannot be undone.
+                      </p>
+                      <Button variant="outline" onClick={handleDeleteAccount} className="border-destructive/30 text-destructive hover:bg-destructive hover:text-destructive-foreground gap-2">
+                        <Trash2 className="w-4 h-4" /> Delete My Account
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
           </TabsContent>
         </Tabs>
       </div>

@@ -2,6 +2,8 @@ import Hero from "@/components/home/Hero";
 import Features from "@/components/home/Features";
 import Subjects from "@/components/home/Subjects";
 import TopTutors from "@/components/home/TopTutors";
+import { TopTutorsSkeleton } from "@/components/home/TopTutorsSkeleton";
+import { Suspense } from "react";
 import CTA from "@/components/home/CTA";
 import Statistics from "@/components/home/Statistics";
 import FAQs from "@/components/home/FAQs";
@@ -20,7 +22,9 @@ export default function Home() {
       <WhyChooseUs />
       <HowItWorks />
       <Subjects />
-      <TopTutors />
+      <Suspense fallback={<TopTutorsSkeleton />}>
+        <TopTutors />
+      </Suspense>
       <FAQs />
       <Newsletter />
       <CTA />
