@@ -19,6 +19,23 @@ import { useRouter } from "next/navigation";
 import { StatCardSkeleton } from "@/components/dashboard/StatCardSkeleton";
 import { TableSkeleton } from "@/components/ui/table-skeleton";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ChartCard } from "@/components/dashboard/ChartCard";
+import { BarChart, PieChart, LineChart } from "@/components/dashboard/DashboardCharts";
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 export default function TutorDashboard() {
   const { user, logout } = useAuth();
@@ -31,6 +48,10 @@ export default function TutorDashboard() {
   const [sessions, setSessions] = useState<any[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("ALL");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
   const router = useRouter();
 
   // Forms
@@ -153,6 +174,39 @@ export default function TutorDashboard() {
     return acc;
   }, 0);
 
+  // Filtered Sessions for the table
+  const filteredSessions = sessions.filter(s => {
+    const matchesSearch = s.student?.user?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         s.id.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesStatus = statusFilter === "ALL" || s.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
+
+  // Pagination
+  const totalPages = Math.ceil(filteredSessions.length / itemsPerPage);
+  const paginatedSessions = filteredSessions.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  // Chart Data
+  const sessionStatusData = [
+    { name: 'Completed', value: completedSessions.length },
+    { name: 'Upcoming', value: upcomingSessions.length },
+    { name: 'Canceled', value: sessions.filter(s => s.status === 'CANCELED').length },
+  ].filter(i => i.value > 0);
+
+  const earningsByMonth = sessions.reduce((acc: any, s: any) => {
+    if (s.paymentStatus === 'PAID') {
+      const date = new Date(s.schedule?.startTime || s.createdAt);
+      const month = format(date, 'MMM');
+      const amount = s.payment?.amount || (s.tutor?.hourlyRate || tutorData?.hourlyRate || 0);
+      acc[month] = (acc[month] || 0) + Number(amount);
+    }
+    return acc;
+  }, {});
+  const earningsTrendData = Object.entries(earningsByMonth).map(([name, value]) => ({ name, value }));
+
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl">
       <DashboardHeader 
@@ -205,6 +259,14 @@ export default function TutorDashboard() {
             )}
           </div>
 
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+            <ChartCard title="Session Distribution" description="Bookings by status">
+              <PieChart data={sessionStatusData} />
+            </ChartCard>
+            <ChartCard title="Earnings Trend" description="Monthly income from sessions">
+              <LineChart data={earningsTrendData} categories={["value"]} />
+            </ChartCard>
+          </div>
         </TabsContent>
 
         {/* Schedule Tab */}
@@ -274,34 +336,103 @@ export default function TutorDashboard() {
         {/* Bookings Tab */}
         <TabsContent value="bookings">
           <Card>
-            <CardHeader>
-              <CardTitle>Student Bookings</CardTitle>
-              <CardDescription>Review and manage all your upcoming and past classes.</CardDescription>
+            <CardHeader className="flex flex-col md:flex-row justify-between md:items-center gap-4">
+              <div>
+                <CardTitle>Student Bookings</CardTitle>
+                <CardDescription>Review and manage all your upcoming and past classes.</CardDescription>
+              </div>
+              <div className="flex gap-2 w-full md:w-auto">
+                <div className="relative w-full md:w-48">
+                  <Input 
+                    placeholder="Search student..." 
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="text-sm"
+                  />
+                </div>
+                <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v ?? "ALL")}>
+                  <SelectTrigger className="w-[130px]">
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ALL">All Status</SelectItem>
+                    <SelectItem value="SCHEDULED">Scheduled</SelectItem>
+                    <SelectItem value="CONFIRMED">Confirmed</SelectItem>
+                    <SelectItem value="COMPLETED">Completed</SelectItem>
+                    <SelectItem value="CANCELED">Canceled</SelectItem>
+                    <SelectItem value="PENDING">Pending</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </CardHeader>
             <CardContent className="space-y-4">
               {isLoading ? (
-                <TableSkeleton columns={3} rows={3} />
-              ) : sessions.length > 0 ? sessions.map((session) => (
-                <div key={session.id} className={`flex flex-col md:flex-row items-center justify-between p-4 border rounded-xl gap-4 border-border ${session.status === 'COMPLETED' ? 'bg-card' : 'bg-muted/30'}`}>
-                  <div>
-                    <h4 className="font-semibold text-foreground">{session.student?.user?.name || "Unknown Student"}</h4>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {session.schedule?.startTime 
-                        ? `${format(new Date(session.schedule.startTime), "PP")} at ${format(new Date(session.schedule.startTime), "p")}` 
-                        : "Date TBD"}
-                    </p>
-                    <div className="flex gap-2 mt-2">
-                      <Badge variant={
-                        session.status === "COMPLETED" ? "default" : 
-                        session.status === "CANCELED" ? "destructive" : "secondary"
-                      }>
-                        {session.status}
-                      </Badge>
-                      <Badge variant="outline">{session.paymentStatus}</Badge>
-                    </div>
+                <TableSkeleton columns={4} rows={3} />
+              ) : filteredSessions.length > 0 ? (
+                <>
+                  <div className="rounded-md border">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Student</TableHead>
+                          <TableHead>Schedule</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead>Payment</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {paginatedSessions.map((session) => (
+                          <TableRow key={session.id}>
+                            <TableCell className="font-medium">{session.student?.user?.name || "Unknown Student"}</TableCell>
+                            <TableCell>
+                              {session.schedule?.startTime 
+                                ? `${format(new Date(session.schedule.startTime), "PP")} at ${format(new Date(session.schedule.startTime), "p")}` 
+                                : "Date TBD"}
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant={
+                                session.status === "COMPLETED" ? "default" : 
+                                session.status === "CANCELED" ? "destructive" : "secondary"
+                              }>
+                                {session.status}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant="outline">{session.paymentStatus}</Badge>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
                   </div>
-                </div>
-              )) : (
+
+                  {totalPages > 1 && (
+                    <div className="flex items-center justify-between mt-4 px-2">
+                      <p className="text-xs text-muted-foreground">
+                        Page {currentPage} of {totalPages}
+                      </p>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={currentPage === 1}
+                          onClick={() => setCurrentPage(p => p - 1)}
+                        >
+                          Previous
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={currentPage === totalPages}
+                          onClick={() => setCurrentPage(p => p + 1)}
+                        >
+                          Next
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </>
+              ) : (
                  <div className="text-center p-8 text-muted-foreground">
                   No bookings found.
                  </div>

@@ -21,6 +21,11 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "TutorBooking – Find Expert Tutors Online",
   description: "Book 1-on-1 tutoring sessions with expert tutors across a wide range of subjects. Register as a student and get started today.",
+  icons: {
+    icon: "/logo.webp",
+    shortcut: "/logo.webp",
+    apple: "/logo.webp",
+  },
 };
 
 export default function RootLayout({

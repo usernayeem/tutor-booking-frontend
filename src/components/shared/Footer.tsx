@@ -96,7 +96,7 @@ export default function Footer() {
             </h3>
             <ul className="flex flex-col gap-4">
               <li>
-                <Link href="/faq" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                <Link href="/help" className="text-sm text-muted-foreground hover:text-primary transition-colors">
                   Help Center & FAQ
                 </Link>
               </li>

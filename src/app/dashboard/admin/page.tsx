@@ -31,6 +31,15 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { ChartCard } from "@/components/dashboard/ChartCard";
+import { BarChart, PieChart, LineChart } from "@/components/dashboard/DashboardCharts";
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select";
 
 export default function AdminDashboard() {
   const { user, logout } = useAuth();
@@ -48,6 +57,8 @@ export default function AdminDashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedSession, setSelectedSession] = useState<any>(null);
   const [isSessionDetailOpen, setIsSessionDetailOpen] = useState(false);
+  const [roleFilter, setRoleFilter] = useState("ALL");
+  const [statusFilter, setStatusFilter] = useState("ALL");
   const router = useRouter();
 
   // States for toggling views
@@ -397,11 +408,41 @@ export default function AdminDashboard() {
     toast.success("Report exported successfully!");
   };
 
-  // Filtered users for search
-  const filteredUsers = usersList.filter(u =>
-    u.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    u.email?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Filtered users for search and dropdowns
+  const filteredUsers = usersList.filter(u => {
+    const matchesSearch = u.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         u.email?.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesRole = roleFilter === "ALL" || u.role === roleFilter;
+    const matchesStatus = statusFilter === "ALL" || (u.status || "ACTIVE") === statusFilter;
+    
+    return matchesSearch && matchesRole && matchesStatus;
+  });
+
+  // Chart Data Calculations
+  const userDistributionData = [
+    { name: 'Students', value: usersList.filter(u => u.role === 'STUDENT').length },
+    { name: 'Tutors', value: usersList.filter(u => u.role === 'TUTOR').length },
+    { name: 'Admins', value: usersList.filter(u => u.role === 'ADMIN' || u.role === 'SUPER_ADMIN').length },
+  ].filter(item => item.value > 0);
+
+  const sessionStatusData = [
+    { name: 'Completed', value: sessions.filter(s => s.status === 'COMPLETED').length },
+    { name: 'Scheduled', value: sessions.filter(s => s.status === 'SCHEDULED' || s.status === 'CONFIRMED').length },
+    { name: 'Pending', value: sessions.filter(s => s.status === 'PENDING').length },
+    { name: 'Canceled', value: sessions.filter(s => s.status === 'CANCELED').length },
+  ];
+
+  const revenueByMonth = sessions.reduce((acc: any, session: any) => {
+    if (session.paymentStatus === 'PAID') {
+      const date = new Date(session.schedule?.startTime || session.createdAt);
+      const month = format(date, 'MMM');
+      const amount = session.payment?.amount || 0;
+      acc[month] = (acc[month] || 0) + amount;
+    }
+    return acc;
+  }, {});
+
+  const revenueTrendData = Object.entries(revenueByMonth).map(([name, value]) => ({ name, value }));
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
@@ -465,6 +506,18 @@ export default function AdminDashboard() {
                 />
               </>
             )}
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+            <ChartCard title="User Distribution" description="Total users by role">
+              <PieChart data={userDistributionData} />
+            </ChartCard>
+            <ChartCard title="Session Overview" description="Bookings by status">
+              <BarChart data={sessionStatusData} />
+            </ChartCard>
+            <ChartCard title="Revenue Growth" description="Monthly platform earnings" className="lg:col-span-2">
+              <LineChart data={revenueTrendData} categories={["value"]} />
+            </ChartCard>
           </div>
         </TabsContent>
 
@@ -642,6 +695,30 @@ export default function AdminDashboard() {
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                     />
+                  </div>
+                  <div className="flex gap-2 w-full md:w-auto">
+                    <Select value={roleFilter} onValueChange={(v) => setRoleFilter(v ?? "ALL")}>
+                      <SelectTrigger className="w-[130px]">
+                        <SelectValue placeholder="Role" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="ALL">All Roles</SelectItem>
+                        <SelectItem value="STUDENT">Student</SelectItem>
+                        <SelectItem value="TUTOR">Tutor</SelectItem>
+                        <SelectItem value="ADMIN">Admin</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v ?? "ALL")}>
+                      <SelectTrigger className="w-[130px]">
+                        <SelectValue placeholder="Status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="ALL">All Status</SelectItem>
+                        <SelectItem value="ACTIVE">Active</SelectItem>
+                        <SelectItem value="BLOCKED">Blocked</SelectItem>
+                        <SelectItem value="PENDING">Pending</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                   <Button onClick={() => setIsCreatingTutor(true)} className="gap-2 shrink-0">
                     <PlusCircle className="w-4 h-4" /> Create Tutor

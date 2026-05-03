@@ -25,12 +25,25 @@ import { useRouter } from "next/navigation";
 import { StatCardSkeleton } from "@/components/dashboard/StatCardSkeleton";
 import { TableSkeleton } from "@/components/ui/table-skeleton";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ChartCard } from "@/components/dashboard/ChartCard";
+import { BarChart, PieChart } from "@/components/dashboard/DashboardCharts";
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select";
 
 export default function StudentDashboard() {
   const { user, logout, refreshUser } = useAuth();
   const [sessions, setSessions] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("ALL");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
 
   // Profile form state
   const [contactNumber, setContactNumber] = useState("");
@@ -237,6 +250,36 @@ export default function StudentDashboard() {
     }
   )[0];
 
+  // Filtered Sessions for the table
+  const filteredSessions = sessions.filter(s => {
+    const matchesSearch = s.tutor?.user?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         s.id.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesStatus = statusFilter === "ALL" || s.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
+
+  // Pagination
+  const totalPages = Math.ceil(filteredSessions.length / itemsPerPage);
+  const paginatedSessions = filteredSessions.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  // Chart Data
+  const sessionStatusData = [
+    { name: 'Completed', value: completedSessions.length },
+    { name: 'Upcoming', value: upcomingSessions.length },
+    { name: 'Canceled', value: sessions.filter(s => s.status === 'CANCELED').length },
+  ].filter(i => i.value > 0);
+
+  const sessionsByMonth = sessions.reduce((acc: any, s: any) => {
+    const date = new Date(s.schedule?.startTime || s.createdAt);
+    const month = format(date, 'MMM');
+    acc[month] = (acc[month] || 0) + 1;
+    return acc;
+  }, {});
+  const monthlySessionsData = Object.entries(sessionsByMonth).map(([name, value]) => ({ name, value }));
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -345,14 +388,48 @@ export default function StudentDashboard() {
                 )}
               </CardContent>
             </Card>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+              <ChartCard title="Session Distribution" description="Bookings by status">
+                <PieChart data={sessionStatusData} />
+              </ChartCard>
+              <ChartCard title="Study Progress" description="Sessions per month">
+                <BarChart data={monthlySessionsData} />
+              </ChartCard>
+            </div>
           </TabsContent>
 
           {/* ── My Bookings ── */}
           <TabsContent value="bookings">
             <Card className="bg-card border-border shadow-sm">
-              <CardHeader>
-                <CardTitle>Session History</CardTitle>
-                <CardDescription>All your tutoring sessions — past and upcoming.</CardDescription>
+              <CardHeader className="flex flex-col md:flex-row justify-between md:items-center gap-4">
+                <div>
+                  <CardTitle>Session History</CardTitle>
+                  <CardDescription>All your tutoring sessions — past and upcoming.</CardDescription>
+                </div>
+                <div className="flex gap-2 w-full md:w-auto">
+                  <div className="relative w-full md:w-48">
+                    <Input 
+                      placeholder="Search tutor..." 
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="text-sm"
+                    />
+                  </div>
+                  <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v ?? "ALL")}>
+                    <SelectTrigger className="w-[130px]">
+                      <SelectValue placeholder="Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="ALL">All Status</SelectItem>
+                      <SelectItem value="SCHEDULED">Scheduled</SelectItem>
+                      <SelectItem value="CONFIRMED">Confirmed</SelectItem>
+                      <SelectItem value="COMPLETED">Completed</SelectItem>
+                      <SelectItem value="CANCELED">Canceled</SelectItem>
+                      <SelectItem value="PENDING">Pending</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </CardHeader>
               <CardContent>
                 {isLoading ? (
@@ -374,7 +451,7 @@ export default function StudentDashboard() {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {sessions.map((session) => (
+                        {paginatedSessions.map((session) => (
                           <TableRow key={session.id} className="hover:bg-muted/50 border-border">
                             <TableCell className="font-medium text-foreground">{session.tutor?.user?.name || "Tutor"}</TableCell>
                             <TableCell className="text-sm text-muted-foreground">
@@ -411,6 +488,32 @@ export default function StudentDashboard() {
                         ))}
                       </TableBody>
                     </Table>
+                  </div>
+                )}
+                
+                {!isLoading && totalPages > 1 && (
+                  <div className="flex items-center justify-between mt-4 px-2">
+                    <p className="text-xs text-muted-foreground">
+                      Page {currentPage} of {totalPages}
+                    </p>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={currentPage === 1}
+                        onClick={() => setCurrentPage(p => p - 1)}
+                      >
+                        Previous
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={currentPage === totalPages}
+                        onClick={() => setCurrentPage(p => p + 1)}
+                      >
+                        Next
+                      </Button>
+                    </div>
                   </div>
                 )}
               </CardContent>
